@@ -90,6 +90,9 @@ The multi-stage build separates dependency installation from the final applicati
 
 ```text
 devops-project/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── .dockerignore
 ├── app.py
 ├── Dockerfile
