@@ -57,6 +57,35 @@ docker stop myapp
 docker rm myapp
 ```
 
+## Multi-stage Docker build
+
+Build the multi-stage Docker image:
+
+```bash
+docker build -t myapp:multistage .
+```
+
+Run the multi-stage container:
+
+```bash
+docker run -d -p 3001:5000 --name myapp-new myapp:multistage
+```
+
+Test the application:
+
+```bash
+curl http://localhost:3001/health
+```
+
+Compare image sizes:
+
+```bash
+docker images myapp
+```
+
+The multi-stage build separates dependency installation from the final application image.
+
+
 ## Project structure
 
 ```text
