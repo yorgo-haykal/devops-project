@@ -1,0 +1,16 @@
+# Dependencies / virtualenvs
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
