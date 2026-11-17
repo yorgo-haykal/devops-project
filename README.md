@@ -2,6 +2,12 @@
 
 Minimal Flask API for the DevOps continuous deployment course.
 
+## Team members 
+Koffi Jean-Luc Junior ADJIEY 
+Yorgo HAYKAL 
+Léanna SUISSA
+Lucie MOREAU 
+
 ## Endpoints
 
 | Method | Path      | Response |
