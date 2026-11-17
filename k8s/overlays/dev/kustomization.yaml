@@ -27,3 +27,7 @@ secretGenerator:
 
 generatorOptions:
   disableNameSuffixHash: true
+
+images:
+  - name: ghcr.io/yorgo-haykal/devops-project
+    newTag: 88a8bb50023441e3ea44c8f77d6e4f41eddac03a
