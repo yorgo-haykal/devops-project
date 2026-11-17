@@ -1,11 +1,16 @@
 .venv/
+venv/
 __pycache__/
 *.pyc
 .git/
 .github/
+.gitignore
 .vscode/
 .pytest_cache/
 tests/
 .env
 .env.*
 README.md
+Dockerfile
+Dockerfile.full
+.dockerignore
