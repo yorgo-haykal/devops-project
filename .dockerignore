@@ -1,0 +1,28 @@
+.git
+.gitignore
+.github
+
+# Python artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+
+# Environment files
+.env
+.env.*
+
+# Docs / lab files
+labs_guidelines/
+report.md
+README.md
+
+# Docker
+Dockerfile
+.dockerignore
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

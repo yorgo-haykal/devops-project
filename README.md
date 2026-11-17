@@ -1,6 +1,7 @@
 # devops-project
 
 Minimal Flask API for the DevOps continuous deployment course.
+Group members : Léanna Suissa, Yorgo Haykal, Lucie Moreau, Junior Adjiey
 
 ## Endpoints
 
@@ -12,10 +13,10 @@ Minimal Flask API for the DevOps continuous deployment course.
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate 
 pip install -r requirements.txt
 python app.py
-curl http://localhost:5000/health
+curl http://localhost:3000/health
 ```
 
 ## Workflow
