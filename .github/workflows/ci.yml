@@ -2,8 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - feature/health-junior
   pull_request:
+    branches: [main]
 
 jobs:
   build-test:
