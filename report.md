@@ -35,3 +35,12 @@ I turned the Dockerfile into a multi-stage build (`Dockerfile.multi`).
 | `myapp:multi` | multi-stage, `python:3.12-slim` | 202 MB | 48.8 MB |
 | `myapp:0.1` | single stage, `python:3.12-slim` | 185 MB | 44.9 MB |
 A smaller image means faster builds, pulls and deployments, less storage and bandwidth, and a smaller attack surface.
+
+lab 2 : 
+
+Question 1. What is the role of a namespace? Does it provide strong security isolation by
+itself?
+ The namespace allows us to divide one cluster into multiple smaller clusters which allows us to have different sessions or environment for example. 
+ By itself it doesn't provide much safety but if you add rules on how you can push code from one environment to the other it will be more secure.
+
+ 
