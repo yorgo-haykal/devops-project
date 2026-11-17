@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.get("/health")
 def health():
-    return "OK v2", 200
+    return "OK", 200
 
 
 if __name__ == "__main__":

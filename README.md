@@ -275,3 +275,147 @@ This saves resources and prevents invalid code from progressing through the pipe
 | Screenshot of a successful pipeline | [Successful Pipeline](screenshots/pipeline-success.png) |
 | Published Docker image | [GHCR Package](https://github.com/yorgo-haykal/devops-project/pkgs/container/devops-project) |
 | Answers to questions 1–5 | "Questions & Answers" Section of this README |
+
+## Session 2: Kubernetes Multi-environment Deployment
+
+### Cluster Resources per Namespace
+
+```
+=== DEV ===
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/devops-project-66d4fb6c8f-hzl96   1/1     Running   0          67m
+pod/devops-project-66d4fb6c8f-mpgg4   1/1     Running   0          67m
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/devops-project   ClusterIP   10.96.173.212   <none>        80/TCP    109m
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/devops-project   2/2     2            2           74m
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/devops-project-5f986cb666   0         0         0       70m
+replicaset.apps/devops-project-66d4fb6c8f   2         2         2       74m
+
+=== STAGING ===
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/devops-project-7747d869b9-lsb4z   1/1     Running   0          75m
+pod/devops-project-7747d869b9-w8g7z   1/1     Running   0          75m
+pod/devops-project-7747d869b9-xxkzq   1/1     Running   0          75m
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/devops-project   ClusterIP   10.96.189.255   <none>        80/TCP    75m
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/devops-project   3/3     3            3           75m
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/devops-project-7747d869b9   3         3         3       75m
+
+=== PROD ===
+NAME                                  READY   STATUS    RESTARTS   AGE
+pod/devops-project-66d4fb6c8f-2kbrj   1/1     Running   0          73m
+pod/devops-project-66d4fb6c8f-7nnhf   1/1     Running   0          73m
+pod/devops-project-66d4fb6c8f-8788l   1/1     Running   0          73m
+pod/devops-project-66d4fb6c8f-g7ffg   1/1     Running   0          73m
+pod/devops-project-66d4fb6c8f-zmhgk   1/1     Running   0          73m
+
+NAME                     TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/devops-project   ClusterIP   10.96.50.184   <none>        80/TCP    73m
+
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/devops-project   5/5     5            5           73m
+
+NAME                                        DESIRED   CURRENT   READY   AGE
+replicaset.apps/devops-project-66d4fb6c8f   5         5         5       73m
+```
+
+### Rolling Update and Rollback
+
+**Rolling update to v2:**
+
+```
+$ kubectl set image deployment/devops-project devops-project=devops-project:v2 -n dev
+deployment.apps/devops-project image updated
+
+$ kubectl rollout status deployment/devops-project -n dev
+Waiting for deployment "devops-project" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "devops-project" rollout to finish: 1 old replicas are pending termination...
+deployment "devops-project" successfully rolled out
+```
+
+**Rollout history after update:**
+
+```
+$ kubectl rollout history deployment/devops-project -n dev
+REVISION  CHANGE-CAUSE
+3         <none>
+4         Updated to v2
+```
+
+**Rollback to previous version:**
+
+```
+$ kubectl rollout undo deployment/devops-project -n dev
+deployment.apps/devops-project rolled back
+
+$ kubectl rollout status deployment/devops-project -n dev
+Waiting for deployment "devops-project" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "devops-project" rollout to finish: 1 old replicas are pending termination...
+deployment "devops-project" successfully rolled out
+```
+
+**Rollout history after rollback:**
+
+```
+$ kubectl rollout history deployment/devops-project -n dev
+REVISION  CHANGE-CAUSE
+4         Updated to v2
+5         <none>
+```
+
+Revision 5 is the rollback to the original image. The application was available throughout both operations with no downtime.
+
+### RBAC: Read-only Viewer Role
+
+**Role** (allows get, list, watch on pods only):
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: dev
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+```
+
+**RoleBinding** (binds the Role to the `viewer` ServiceAccount):
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: viewer-binding
+  namespace: dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pod-reader
+subjects:
+- kind: ServiceAccount
+  name: viewer
+  namespace: dev
+```
+
+**`auth can-i` results:**
+
+```
+$ kubectl auth can-i list pods -n dev --as=system:serviceaccount:dev:viewer
+yes
+$ kubectl auth can-i delete pods -n dev --as=system:serviceaccount:dev:viewer
+no
+```
+
+The `viewer` service account can read pods but cannot delete them or create deployments, confirming the read-only RBAC policy works as expected.
