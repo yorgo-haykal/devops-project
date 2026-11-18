@@ -1,0 +1,3 @@
+﻿kubernetes_deployment.app
+kubernetes_namespace.preview
+kubernetes_service.app

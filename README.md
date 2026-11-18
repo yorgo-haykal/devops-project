@@ -266,7 +266,7 @@ For example, when our automated health endpoint test failed, GitHub Actions stop
 This saves resources and prevents invalid code from progressing through the pipeline.
 
 
-## Lab Deliverables
+## Lab 1 Deliverables
 
 | Required deliverable | Evidence |
 |---|---|
@@ -275,3 +275,193 @@ This saves resources and prevents invalid code from progressing through the pipe
 | Screenshot of a successful pipeline | [Successful Pipeline](screenshots/pipeline-success.png) |
 | Published Docker image | [GHCR Package](https://github.com/yorgo-haykal/devops-project/pkgs/container/devops-project) |
 | Answers to questions 1–5 | "Questions & Answers" Section of this README |
+
+
+## Lab 2 — Kubernetes, Multi-Environment Deployment and Audit
+
+### Kubernetes Cluster Setup
+
+A local Kubernetes cluster was created using Kind (Kubernetes in Docker).
+
+The cluster is named `devops-lab` and contains a control-plane node.
+
+Three namespaces were created to isolate the application environments:
+
+- `dev`
+- `staging`
+- `prod`
+
+### Kubernetes Deployment and Service
+
+The Flask application was deployed using Kubernetes manifests.
+
+The Deployment configuration defines:
+
+- A container image published to GitHub Container Registry (GHCR).
+- Three application replicas by default.
+- Container port `5000`.
+- Readiness and liveness probes using `/health`.
+
+A ClusterIP Service exposes the application internally on port `80` and forwards requests to container port `5000`.
+
+The application was successfully tested using `kubectl port-forward`, returning `OK` from the `/health` endpoint.
+
+### Multi-Environment Configuration with Kustomize
+
+Kustomize was used to manage different environments without duplicating the entire Kubernetes configuration.
+
+The project contains a common base and three environment overlays:
+
+- `k8s/base/`
+- `k8s/overlays/dev/`
+- `k8s/overlays/staging/`
+- `k8s/overlays/prod/`
+
+The following deployments were successfully verified:
+
+| Environment | Replicas | Status |
+|---|---:|---|
+| DEV | 3 | Available |
+| STAGING | 3 | Available |
+| PROD | 5 | Available |
+
+Each environment can be configured independently while sharing the same base manifests.
+
+### Kubernetes Self-Healing and Scaling
+
+Kubernetes self-healing was tested by manually deleting an application Pod.
+
+The ReplicaSet automatically created a replacement Pod to maintain the desired number of replicas.
+
+Horizontal scaling was also tested by increasing the DEV Deployment from three to five replicas, then restoring it to three.
+
+These experiments demonstrated Kubernetes' reconciliation mechanism.
+
+### Readiness and Liveness Probes
+
+The application uses the `/health` endpoint for health monitoring.
+
+A readiness probe determines whether a Pod is ready to receive traffic.
+
+A liveness probe determines whether a container should be restarted because it is unhealthy.
+
+A deliberately incorrect readiness path (`/wrong-health`) was tested to demonstrate how Kubernetes detects an unready application.
+
+The correct configuration was restored afterward.
+
+### Rolling Updates and Rollbacks
+
+Kubernetes rolling updates were tested using both invalid and valid container images.
+
+An invalid image tag caused an `ErrImagePull` error in a new Pod, while the existing healthy Pods remained available.
+
+The Deployment was then restored using:
+
+```bash
+kubectl rollout undo deployment/myapp -n dev
+```
+
+A successful rolling update was also performed using a valid GHCR image.
+
+This demonstrated how Kubernetes can progressively update an application and recover from a failed deployment.
+
+### Configuration and Secrets
+
+Kubernetes ConfigMaps and Secrets were used to separate application configuration from container images.
+
+ConfigMaps store non-sensitive configuration values.
+
+Secrets provide a dedicated mechanism for managing sensitive values, although Base64 encoding alone does not provide encryption.
+
+### Role-Based Access Control (RBAC)
+
+Kubernetes RBAC was configured to restrict access to resources.
+
+A dedicated ServiceAccount was associated with a Role and RoleBinding in the DEV namespace.
+
+The permissions were tested to verify that:
+
+- Listing Pods in DEV was authorized.
+- Deleting Pods in DEV was denied.
+- Listing Pods in PROD was denied.
+
+This demonstrated the principle of least privilege.
+
+### Audit and Traceability
+
+Kubernetes rollout history, events, deployment information, and RBAC test results were collected as evidence.
+
+The project includes deployment annotations and GitHub CI/CD information to support traceability between application versions and infrastructure changes.
+
+### Lab 2 Deliverables
+
+- Kubernetes manifests: `k8s/base/`
+- Environment overlays: `k8s/overlays/`
+- RBAC configuration: `k8s/rbac/`
+- Deployment and rollback evidence: `evidence/`
+- Answers to the eight lab questions: `ANSWERS.md`
+
+
+
+## Lab 3 — Terraform, Environments and Ephemeral Previews
+
+### Infrastructure as Code
+
+Terraform is used to provision and manage infrastructure through declarative configuration files.
+
+The lab covers Docker resources, reusable modules, isolated environments, state management, Kubernetes preview environments, and CI security scanning.
+
+### Terraform Project Structure
+
+- `infra/quickstart/`: first Terraform configuration using Docker.
+- `infra/modules/webapp/`: reusable Terraform module.
+- `infra/envs/dev/`: development environment.
+- `infra/envs/staging/`: staging environment.
+- `infra/preview/`: ephemeral Kubernetes environment per Pull Request.
+- `infra/evidence/`: evidence of infrastructure deployments.
+
+### Environment Isolation
+
+Development and staging use the same reusable module with different variables and ports.
+
+- DEV: `http://localhost:8083`
+- STAGING: `http://localhost:8084`
+
+Terraform state files are excluded from Git to avoid exposing sensitive infrastructure information.
+
+### Ephemeral Preview Environments
+
+Terraform provisions isolated Kubernetes namespaces for Pull Requests.
+
+Two environments were successfully created:
+
+- `pr-42`
+- `pr-43`
+
+Each environment used a separate Terraform state file.
+
+The `pr-42` environment was destroyed without affecting `pr-43`.
+
+The remaining preview environment was updated with security settings, resource limits, health probes, and a container image pinned to a SHA256 digest.
+
+The `/health` endpoint was successfully tested after deployment.
+
+### Terraform CI and Security Scanning
+
+GitHub Actions executes three Terraform jobs:
+
+1. Terraform Format and Validate
+2. Terraform Security Scan using Checkov
+3. Terraform Plan
+
+The pipeline initially detected configuration and security issues. These were addressed through configuration changes, with two image-related Checkov checks explicitly skipped because Terraform variable validation enforces digest pinning.
+
+All three jobs subsequently completed successfully.
+
+### Lab 3 Evidence
+
+- [Kubernetes namespaces](infra/evidence/namespaces.txt)
+- [PR #43 deployment](infra/evidence/preview-pr43.txt)
+- [PR #43 Terraform state resources](infra/evidence/preview-state.txt)
+- [Answers to Lab 3 questions](infra/ANSWERS.md)
+- [Terraform Pull Request #20](https://github.com/yorgo-haykal/devops-project/pull/20)
