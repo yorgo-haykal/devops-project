@@ -1,0 +1,12 @@
+﻿NAME                         READY   STATUS    RESTARTS   AGE
+pod/myapp-7c5ddf488d-ssdd8   1/1     Running   0          3m26s
+
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/myapp   ClusterIP   10.96.153.250   <none>        80/TCP    44m
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/myapp   1/1     1            1           44m
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/myapp-766d964588   0         0         0       44m
+replicaset.apps/myapp-7c5ddf488d   1         1         1       3m26s
