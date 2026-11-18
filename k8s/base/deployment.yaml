@@ -2,6 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myapp
+  annotations:
+    commit-sha: "18c362903f1dcafa6944059f85caf596f5c16515"
+    pipeline-run-url: "https://github.com/yorgo-haykal/devops-project/actions/runs/18c362903f1dcafa6944059f85caf596f5c16515"
+    owner: "Leanna S"
 spec:
   replicas: 3
   selector:

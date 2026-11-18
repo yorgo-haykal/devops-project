@@ -69,3 +69,10 @@ PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project>
 the broken rollout didn't break the application because the deployment used rollingupdate and readinessprobe. RollingUpdate is a kubernetes function which is dictates that a new pod is published when it's working but in the mean time it still runs the old pod.  readinessprob checks regularly that the functions are working and healthy and doesn't allow new pods if it's broken
 
 kubernetes only deletes the old/running pod when the new pod is ready. which allows it to prevent human errors of misclicks from breaking everything. 
+
+question 7 : 
+Since the pod coesn't contain a lot of metadata we need to do the chain backward. First from the pod -> image -> deployment -> sha -> commit -> reviewer -> pipeline run. 
+We need to know that this only works if the image is tagged with the commit SHA.
+
+question 8 : 
+This command changes the object in the cluster live. It bypasses git, a pull request and the guadrails put for traceability. It also has no records of who did it.
