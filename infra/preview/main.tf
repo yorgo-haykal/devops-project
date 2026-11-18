@@ -57,9 +57,39 @@ resource "kubernetes_deployment" "app" {
       }
 
       spec {
+        security_context {
+          run_as_non_root = true
+          run_as_user     = 1000
+          run_as_group    = 1000
+        }
+
         container {
-          name  = "myapp"
-          image = var.image
+          name              = "myapp"
+          image             = var.image
+          image_pull_policy = "Always"
+
+          security_context {
+            run_as_non_root            = true
+            run_as_user                = 1000
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
+
+          resources {
+            requests = {
+              cpu    = "100m"
+              memory = "64Mi"
+            }
+
+            limits = {
+              cpu    = "250m"
+              memory = "128Mi"
+            }
+          }
 
           port {
             container_port = 5000
