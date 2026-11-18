@@ -1,0 +1,474 @@
+lab3 : question 4.3
+
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> terraform -chdir=infra/preview init -reconfigure "-backend-config=path=state/pr-43.tfstate"
+Initializing the backend...
+
+Successfully configured the backend "local"! Terraform will automatically
+use this backend unless the backend configuration changes.
+
+Initializing provider plugins...
+- Reusing version 2.38.0 of hashicorp/kubernetes from the dependency lock file
+- Using previously-installed hashicorp/kubernetes v2.38.0
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> terraform -chdir=infra/preview apply "-var=pr_number=43" "-var=image=ghcr.io/yorgo-haykal/devops-project:88a8bb50023441e3ea44c8f77d6e4f41eddac03a"
+
+Terraform used the selected providers to generate the following
+execution plan. Resource actions are indicated with the
+following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # kubernetes_deployment.app will be created
+  + resource "kubernetes_deployment" "app" {
+      + id               = (known after apply)
+      + wait_for_rollout = true
+
+      + metadata {
+          + generation       = (known after apply)
+          + name             = "myapp"
+          + namespace        = "pr-43"
+          + resource_version = (known after apply)
+          + uid              = (known after apply)
+        }
+
+      + spec {
+          + min_ready_seconds         = 0
+          + paused                    = false
+          + progress_deadline_seconds = 600
+          + replicas                  = "1"
+          + revision_history_limit    = 10
+
+          + selector {
+              + match_labels = {
+                  + "app" = "myapp"
+                }
+            }
+
+          + strategy (known after apply)
+
+          + template {
+              + metadata {
+                  + generation       = (known after apply)
+                  + labels           = {
+                      + "app" = "myapp"
+                    }
+                  + name             = (known after apply)
+                  + resource_version = (known after apply)
+                  + uid              = (known after apply)
+                }
+              + spec {
+                  + automount_service_account_token  = true
+                  + dns_policy                       = "ClusterFirst"
+                  + enable_service_links             = true
+                  + host_ipc                         = false
+                  + host_network                     = false
+                  + host_pid                         = false
+                  + hostname                         = (known after apply)
+                  + node_name                        = (known after apply)
+                  + restart_policy                   = "Always"
+                  + scheduler_name                   = (known after apply)
+                  + service_account_name             = (known after apply)
+                  + share_process_namespace          = false
+                  + termination_grace_period_seconds = 30
+
+                  + container {
+                      + image                      = "ghcr.io/yorgo-haykal/devops-project:88a8bb50023441e3ea44c8f77d6e4f41eddac03a"
+                      + image_pull_policy          = (known after apply)
+                      + name                       = "myapp"
+                      + stdin                      = false
+                      + stdin_once                 = false
+                      + termination_message_path   = "/dev/termination-log"
+                      + termination_message_policy = (known after apply)
+                      + tty                        = false
+
+                      + port {
+                          + container_port = 5000
+                          + protocol       = "TCP"
+                        }
+
+                      + resources (known after apply)
+                    }
+
+                  + image_pull_secrets (known after apply)
+
+                  + readiness_gate (known after apply)
+                }
+            }
+        }
+    }
+
+  # kubernetes_namespace.preview will be created
+  + resource "kubernetes_namespace" "preview" {
+      + id                               = (known after apply)
+      + wait_for_default_service_account = false
+
+      + metadata {
+          + generation       = (known after apply)
+          + labels           = {
+              + "pr"      = "43"
+              + "purpose" = "preview"
+            }
+          + name             = "pr-43"
+          + resource_version = (known after apply)
+          + uid              = (known after apply)
+        }
+    }
+
+  # kubernetes_service.app will be created
+  + resource "kubernetes_service" "app" {
+      + id                     = (known after apply)
+      + status                 = (known after apply)
+      + wait_for_load_balancer = true
+
+      + metadata {
+          + generation       = (known after apply)
+          + name             = "myapp"
+          + namespace        = "pr-43"
+          + resource_version = (known after apply)
+          + uid              = (known after apply)
+        }
+
+      + spec {
+          + allocate_load_balancer_node_ports = true
+          + cluster_ip                        = (known after apply)
+          + cluster_ips                       = (known after apply)
+          + external_traffic_policy           = (known after apply)
+          + health_check_node_port            = (known after apply)
+          + internal_traffic_policy           = (known after apply)
+          + ip_families                       = (known after apply)
+          + ip_family_policy                  = (known after apply)
+          + publish_not_ready_addresses       = false
+          + selector                          = {
+              + "app" = "myapp"
+            }
+          + session_affinity                  = "None"
+          + type                              = "ClusterIP"
+
+          + port {
+              + node_port   = (known after apply)
+              + port        = 80
+              + protocol    = "TCP"
+              + target_port = "5000"
+            }
+
+          + session_affinity_config (known after apply)
+        }
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+kubernetes_namespace.preview: Creating...
+kubernetes_namespace.preview: Creation complete after 0s [id=pr-43]
+kubernetes_service.app: Creating...
+kubernetes_deployment.app: Creating...
+kubernetes_service.app: Creation complete after 0s [id=pr-43/myapp]
+kubernetes_deployment.app: Creation complete after 2s [id=pr-43/myapp]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> kubectl get ns -l purpose=preview
+NAME    STATUS   AGE
+pr-42   Active   2m38s
+pr-43   Active   20s
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> kubectl get all -n pr-42
+NAME                         READY   STATUS    RESTARTS   AGE
+pod/myapp-7966455658-7vh4n   1/1     Running   0          2m47s
+
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/myapp   ClusterIP   10.96.239.164   <none>        80/TCP    2m47s
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/myapp   1/1     1            1           2m47s
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/myapp-7966455658   1         1         1       2m47s
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> kubectl get all -n pr-43
+NAME                         READY   STATUS    RESTARTS   AGE
+pod/myapp-7966455658-66qtd   1/1     Running   0          33s
+
+NAME            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+service/myapp   ClusterIP   10.96.3.241   <none>        80/TCP    33s
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/myapp   1/1     1            1           33s
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/myapp-7966455658   1         1         1       33s
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> ls infra/preview/state
+
+
+    Répertoire: C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-
+    DEPLOYMENT\devops-project\infra\preview\state
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        18/11/2026     13:35          10160 pr-42.tfstate
+-a----        18/11/2026     13:37          10156 pr-43.tfstate
+-a----        18/11/2026     13:34            181 pr-67.tfstate
+-a----        18/11/2026     13:34           4311 pr-67.tfstate
+                                                  .backup
+
+
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project>
+
+
+
+
+
+
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> terraform -chdir=infra/preview init -reconfigure "-backend-config=path=state/pr-42.tfstate"
+Initializing the backend...
+
+Successfully configured the backend "local"! Terraform will automatically
+use this backend unless the backend configuration changes.
+
+Initializing provider plugins...
+- Reusing version 2.38.0 of hashicorp/kubernetes from the dependency lock file
+- Using previously-installed hashicorp/kubernetes v2.38.0
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> terraform -chdir=infra/preview destroy "-var=pr_number=42" "-var=image=ghcr.io/yorgo-haykal/devops-project:88a8bb50023441e3ea44c8f77d6e4f41eddac03a"
+kubernetes_namespace.preview: Refreshing state... [id=pr-42]
+kubernetes_service.app: Refreshing state... [id=pr-42/myapp]
+kubernetes_deployment.app: Refreshing state... [id=pr-42/myapp]
+
+Terraform used the selected providers to generate the following
+execution plan. Resource actions are indicated with the
+following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # kubernetes_deployment.app will be destroyed
+  - resource "kubernetes_deployment" "app" {
+      - id               = "pr-42/myapp" -> null
+      - wait_for_rollout = true -> null
+
+      - metadata {
+          - annotations      = {} -> null
+          - generation       = 1 -> null
+          - labels           = {} -> null
+          - name             = "myapp" -> null
+          - namespace        = "pr-42" -> null
+          - resource_version = "33152" -> null
+          - uid              = "83c4cc75-32fc-4db8-adba-b35f9f790cb1" -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - spec {
+          - min_ready_seconds         = 0 -> null
+          - paused                    = false -> null
+          - progress_deadline_seconds = 600 -> null
+          - replicas                  = "1" -> null
+          - revision_history_limit    = 10 -> null
+
+          - selector {
+              - match_labels = {
+                  - "app" = "myapp"
+                } -> null
+            }
+
+          - strategy {
+              - type = "RollingUpdate" -> null
+
+              - rolling_update {
+                  - max_surge       = "25%" -> null
+                  - max_unavailable = "25%" -> null
+                }
+            }
+
+          - template {
+              - metadata {
+                  - annotations      = {} -> null
+                  - generation       = 0 -> null
+                  - labels           = {
+                      - "app" = "myapp"
+                    } -> null
+                    name             = null
+                    # (4 unchanged attributes hidden)
+                }
+              - spec {
+                  - active_deadline_seconds          = 0 -> null
+                  - automount_service_account_token  = true -> null
+                  - dns_policy                       = "ClusterFirst" -> null
+                  - enable_service_links             = true -> null
+                  - host_ipc                         = false -> null
+                  - host_network                     = false -> null
+                  - host_pid                         = false -> null
+                  - node_selector                    = {} -> null
+                  - restart_policy                   = "Always" -> null
+                  - scheduler_name                   = "default-scheduler" -> null
+                  - share_process_namespace          = false -> null
+                  - termination_grace_period_seconds = 30 -> null
+                    # (6 unchanged attributes hidden)
+
+                  - container {
+                      - args                       = [] -> null
+                      - command                    = [] -> null
+                      - image                      = "ghcr.io/yorgo-haykal/devops-project:88a8bb50023441e3ea44c8f77d6e4f41eddac03a" -> null
+                      - image_pull_policy          = "IfNotPresent" -> null
+                      - name                       = "myapp" -> null
+                      - stdin                      = false -> null
+                      - stdin_once                 = false -> null
+                      - termination_message_path   = "/dev/termination-log" -> null
+                      - termination_message_policy = "File" -> null
+                      - tty                        = false -> null
+                        # (1 unchanged attribute hidden)
+
+                      - port {
+                          - container_port = 5000 -> null
+                          - host_port      = 0 -> null
+                            name           = null
+                          - protocol       = "TCP" -> null
+                            # (1 unchanged attribute hidden)
+                        }
+
+                      - resources {
+                          - limits   = {} -> null
+                          - requests = {} -> null
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+  # kubernetes_namespace.preview will be destroyed
+  - resource "kubernetes_namespace" "preview" {
+      - id                               = "pr-42" -> null
+      - wait_for_default_service_account = false -> null
+
+      - metadata {
+          - annotations      = {} -> null
+          - generation       = 0 -> null
+          - labels           = {
+              - "pr"      = "42"
+              - "purpose" = "preview"
+            } -> null
+          - name             = "pr-42" -> null
+          - resource_version = "33123" -> null
+          - uid              = "6a0e226d-e359-4971-9c42-9d745b43eaa0" -> null
+            # (1 unchanged attribute hidden)
+        }
+    }
+
+  # kubernetes_service.app will be destroyed
+  - resource "kubernetes_service" "app" {
+      - id                     = "pr-42/myapp" -> null
+      - status                 = [
+          - {
+              - load_balancer = [
+                  - {
+                      - ingress = []
+                    },
+                ]
+            },
+        ] -> null
+      - wait_for_load_balancer = true -> null
+
+      - metadata {
+          - annotations      = {} -> null
+          - generation       = 0 -> null
+          - labels           = {} -> null
+          - name             = "myapp" -> null
+          - namespace        = "pr-42" -> null
+          - resource_version = "33127" -> null
+          - uid              = "6c657dfc-d963-4f69-92bb-189933531ef9" -> null
+            # (1 unchanged attribute hidden)
+        }
+
+      - spec {
+          - allocate_load_balancer_node_ports = true -> null
+          - cluster_ip                        = "10.96.239.164" -> null
+          - cluster_ips                       = [
+              - "10.96.239.164",
+            ] -> null
+          - external_ips                      = [] -> null
+          - health_check_node_port            = 0 -> null
+          - internal_traffic_policy           = "Cluster" -> null
+          - ip_families                       = [
+              - "IPv4",
+            ] -> null
+          - ip_family_policy                  = "SingleStack" -> null
+          - load_balancer_source_ranges       = [] -> null
+          - publish_not_ready_addresses       = false -> null
+          - selector                          = {
+              - "app" = "myapp"
+            } -> null
+          - session_affinity                  = "None" -> null
+          - type                              = "ClusterIP" -> null
+            # (4 unchanged attributes hidden)
+
+          - port {
+                name         = null
+              - node_port    = 0 -> null
+              - port         = 80 -> null
+              - protocol     = "TCP" -> null
+              - target_port  = "5000" -> null
+                # (1 unchanged attribute hidden)
+            }
+        }
+    }
+
+Plan: 0 to add, 0 to change, 3 to destroy.
+
+Do you really want to destroy all resources?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.
+
+  Enter a value: yes
+
+kubernetes_service.app: Destroying... [id=pr-42/myapp]
+kubernetes_deployment.app: Destroying... [id=pr-42/myapp]
+kubernetes_deployment.app: Destruction complete after 0s
+kubernetes_service.app: Destruction complete after 0s
+kubernetes_namespace.preview: Destroying... [id=pr-42]
+kubernetes_namespace.preview: Still destroying... [id=pr-42, 00m10s elapsed]
+kubernetes_namespace.preview: Still destroying... [id=pr-42, 00m20s elapsed]
+kubernetes_namespace.preview: Still destroying... [id=pr-42, 00m30s elapsed]
+kubernetes_namespace.preview: Still destroying... [id=pr-42, 00m40s elapsed]
+kubernetes_namespace.preview: Destruction complete after 43s
+
+Destroy complete! Resources: 3 destroyed.
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> kubectl get ns -l purpose=preview
+NAME    STATUS   AGE
+pr-43   Active   3m9s
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> kubectl get all -n pr-42
+No resources found in pr-42 namespace.
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> kubectl get all -n pr-43
+NAME                         READY   STATUS    RESTARTS   AGE
+pod/myapp-7966455658-66qtd   1/1     Running   0          3m24s
+
+NAME            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+service/myapp   ClusterIP   10.96.3.241   <none>        80/TCP    3m24s
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/myapp   1/1     1            1           3m24s
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/myapp-7966455658   1         1         1       3m24s
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project>

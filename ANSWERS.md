@@ -140,3 +140,14 @@ A remote backend prevents:
 - Connection information: endpoints, IP addresses, usernames ...
 - Environment variables.
 - Infrastructure details: resource IDs, network layout and names, which help an attacker to map the infrastructure.
+
+## Question 6 — Preview Environments That Are Never Destroyed
+
+**What could go wrong if the preview environment is never destroyed? List three mitigations.**
+
+If previews are never destroyed, they accumulate with every Pull Request and become orphaned environments that nobody owns or remembers. this leads to higher costs and wasted resources, security risks and potential drift.
+
+Three mitigations:
+1. Automatic destruction when the PR is closed or merged.
+2. Expiration labels and a scheduled cleanup job.
+3. Quotas and limits on each preview namespace cap the resources a forgotten preview can use, and a regular report of existing previews helps to detect the ones that should be removed.
