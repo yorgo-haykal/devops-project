@@ -14,3 +14,18 @@ __pycache__/
 .idea/
 .vscode/
 .DS_Store
+
+# Terraform local state
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfplan
+crash.log
+crash.*.log
+
+# Terraform variable files containing secrets
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Keep Terraform provider lock files in Git
+!.terraform.lock.hcl

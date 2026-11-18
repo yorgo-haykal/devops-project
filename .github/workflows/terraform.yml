@@ -1,0 +1,80 @@
+
+name: Terraform CI
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - ".github/workflows/terraform.yml"
+
+jobs:
+  validate:
+    name: Terraform Format and Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive infra
+
+      - name: Initialize DEV configuration
+        run: terraform -chdir=infra/envs/dev init -backend=false
+
+      - name: Validate DEV configuration
+        run: terraform -chdir=infra/envs/dev validate
+
+      - name: Initialize STAGING configuration
+        run: terraform -chdir=infra/envs/staging init -backend=false
+
+      - name: Validate STAGING configuration
+        run: terraform -chdir=infra/envs/staging validate
+
+      - name: Initialize PREVIEW configuration
+        run: terraform -chdir=infra/preview init -backend=false
+
+      - name: Validate PREVIEW configuration
+        run: terraform -chdir=infra/preview validate
+
+  security:
+    name: Terraform Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra
+          framework: terraform
+          soft_fail: false
+
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize DEV configuration
+        run: terraform -chdir=infra/envs/dev init -backend=false
+
+      - name: Generate Terraform plan
+        run: terraform -chdir=infra/envs/dev plan -var-file=dev.tfvars -out=tfplan
+
+      - name: Upload Terraform plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-dev-plan
+          path: infra/envs/dev/tfplan
+          retention-days: 7
