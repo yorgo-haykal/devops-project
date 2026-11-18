@@ -66,4 +66,6 @@ myapp-6c74fc7cf8-8sbcp   0/1     ErrImagePull   0          5s
 myapp-b8bf6cb8f-njlvc    1/1     Running        0          10m
 PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project>
 
+the broken rollout didn't break the application because the deployment used rollingupdate and readinessprobe. RollingUpdate is a kubernetes function which is dictates that a new pod is published when it's working but in the mean time it still runs the old pod.  readinessprob checks regularly that the functions are working and healthy and doesn't allow new pods if it's broken
 
+kubernetes only deletes the old/running pod when the new pod is ready. which allows it to prevent human errors of misclicks from breaking everything. 

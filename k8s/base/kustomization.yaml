@@ -9,4 +9,4 @@ resources:
 images:
     - name: ghcr.io/yorgo-haykal/devops-project
       newName: myapp
-      newTag: broken
+      newTag: v2
