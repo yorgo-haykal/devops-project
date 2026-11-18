@@ -1,11 +1,13 @@
-# devops-project
-
+# **DevOps Lab**
 Minimal Flask API for the DevOps continuous deployment course.
 
 ## Team members 
 Koffi Jean-Luc Junior ADJIEY 
+
 Yorgo HAYKAL 
+
 Léanna SUISSA
+
 Lucie MOREAU 
 
 ## Endpoints
@@ -30,8 +32,14 @@ curl http://localhost:5000/health
 
 - `build-test` job is configured as a required status check.
 
+## Table of Contents
 
-## Docker Containerization
+- [Lab 1 — Git, CI/CD and Docker](#lab-1--git-cicd-and-docker)
+- [Lab 2 — Kubernetes, Multi-environment Deployment and Audit](#lab-2--kubernetes-multi-environment-deployment-and-audit)
+- [Lab 3 — Terraform, Environments and Ephemeral Previews](#lab-3--terraform-environments-and-ephemeral-previews)
+
+## Lab 1 — Git, CI/CD and Docker
+### Docker Containerization
 
 The application is packaged as a Docker image using a lightweight Python base image.
 
@@ -39,19 +47,19 @@ The Dockerfile uses `python:3.12-slim`, installs the application dependencies, c
 
 A `.dockerignore` file excludes unnecessary development files from the Docker build context.
 
-### Build the Docker Image
+#### Build the Docker Image
 
 ```bash
 docker build -t myapp:0.1 .
 ```
 
-### Run the Container
+#### Run the Container
 
 ```bash
 docker run -d -p 5000:5000 --name myapp myapp:0.1
 ```
 
-### Verify the Endpoint
+#### Verify the Endpoint
 
 ```bash
 curl http://localhost:5000/health
@@ -63,7 +71,7 @@ Expected output:
 OK
 ```
 
-### Inspect the Container
+#### Inspect the Container
 
 View the application logs:
 
@@ -89,7 +97,7 @@ Expected output:
 appuser
 ```
 
-### Docker Image Size Comparison
+#### Docker Image Size Comparison
 
 Two Docker images were built and compared.
 
@@ -103,13 +111,13 @@ The slim-based image uses approximately **87.8% less disk space** than the full 
 This demonstrates the benefits of choosing a lightweight base image.
 
 
-## Continuous Integration Pipeline
+### Continuous Integration Pipeline
 
 The CI pipeline is implemented using GitHub Actions.
 
 **Workflow:** [`.github/workflows/ci.yml`](https://github.com/yorgo-haykal/devops-project/blob/main/.github/workflows/ci.yml)
 
-### CI Pipeline Steps
+#### CI Pipeline Steps
 
 The `build-test` job performs the following operations:
 
@@ -122,14 +130,14 @@ The `build-test` job performs the following operations:
 
 The workflow runs automatically on configured push and Pull Request events.
 
-### Automated Health Endpoint Test
+#### Automated Health Endpoint Test
 
 The application includes an automated test that verifies:
 
 - The `/health` endpoint responds with HTTP status code `200`.
 - The response body contains `OK`.
 
-### Failed Pipeline Demonstration
+#### Failed Pipeline Demonstration
 
 To demonstrate CI failure detection, the expected HTTP status code was deliberately changed from `200` to `404`.
 
@@ -139,7 +147,7 @@ GitHub Actions reported a failed pipeline, demonstrating that the CI workflow de
 
 ![Failed CI Pipeline](screenshots/pipeline-failed.png)
 
-### Successful Pipeline Demonstration
+#### Successful Pipeline Demonstration
 
 After restoring the correct expected status code (`200`), the automated tests passed and the CI pipeline completed successfully.
 
@@ -148,7 +156,7 @@ The final pipeline executed on `main` also completed successfully, including the
 ![Successful CI Pipeline](screenshots/pipeline-success.png)
 
 
-## Continuous Delivery — Docker Image Publication
+### Continuous Delivery — Docker Image Publication
 
 After successful validation, the `publish` job automatically publishes the Docker image to GitHub Container Registry.
 
@@ -160,7 +168,7 @@ The publication job:
 4. Builds and publishes the Docker image.
 5. Tags the image using the Git commit SHA.
 
-### Published Docker Image
+#### Published Docker Image
 
 **Registry:** GitHub Container Registry
 
@@ -172,13 +180,13 @@ The publication job:
 ghcr.io/yorgo-haykal/devops-project:e2aafa2142832bec55000f5885e0289a58476e97
 ```
 
-### Pull the Published Image
+#### Pull the Published Image
 
 ```bash
 docker pull ghcr.io/yorgo-haykal/devops-project:e2aafa2142832bec55000f5885e0289a58476e97
 ```
 
-### Security
+#### Security
 
 No passwords or authentication tokens are stored in plain text in the repository.
 
@@ -186,11 +194,11 @@ The pipeline uses GitHub Actions' automatically generated `GITHUB_TOKEN` to auth
 
 The publication job is granted the `packages: write` permission required to publish container images.
 
-## CI/CD Traceability
+### CI/CD Traceability
 
 The CI/CD workflow provides traceability between the source code, the pipeline execution and the published image.
 
-### Source Commit
+#### Source Commit
 
 **Branch:** `main`
 
@@ -202,7 +210,7 @@ e2aafa2142832bec55000f5885e0289a58476e97
 
 **Pull Request:** [PR #4](https://github.com/yorgo-haykal/devops-project/pull/4)
 
-### Pipeline Execution
+#### Pipeline Execution
 
 After the Pull Request was merged, GitHub Actions executed the workflow on `main`.
 
@@ -213,7 +221,7 @@ After the Pull Request was merged, GitHub Actions executed the workflow on `main
 
 **Total workflow duration:** 1 minute 7 seconds.
 
-### Published Artifact
+#### Published Artifact
 
 The Docker image was successfully published to GHCR with a tag matching the source commit SHA.
 
@@ -222,49 +230,6 @@ The Docker image was successfully published to GHCR with a tag matching the sour
 `Source commit → build-test → publish → GHCR image`
 
 Using the commit SHA makes it possible to identify the exact source code version associated with the published Docker image.
-
-
-## Questions & Answers
-
-### Question 1: Why forbid direct pushes to main?
-
-Direct pushes to `main` are forbidden to protect the stability of the project. Pull Requests allow developers to review changes, run automated tests and detect potential problems before merging code into the main branch.
-
-### Question 2: What is the difference between an image and a container?
-
-A Docker image is a read-only template containing the application, its dependencies and the environment required to run it.
-
-A Docker container is a running instance of an image. Multiple containers can be created from the same image.
-
-### Question 3: Compare the size of your image with a non-slim base image. What do you observe?
-
-We built two Docker images using different Python base images.
-
-| Base image | Disk usage |
-|---|---:|
-| `python:3.12-slim` | 198 MB |
-| `python:3.12` | 1.62 GB |
-
-The slim image is approximately 87.8% smaller.
-
-This is because slim images exclude many unnecessary system packages and tools. Using slim images reduces storage requirements and can improve image transfer times.
-
-### Question 4: Why tag the image with the commit SHA rather than latest?
-
-Using the commit SHA provides a unique identifier that links the Docker image to a specific version of the source code.
-
-It improves traceability and reproducibility and makes it easier to identify or roll back to a specific version.
-
-The `latest` tag is mutable and does not reliably identify a specific version.
-
-### Question 5: What does "fail fast" mean in a pipeline?
-
-Fail fast means stopping the pipeline as soon as a critical step fails, instead of continuing with unnecessary operations.
-
-For example, when our automated health endpoint test failed, GitHub Actions stopped the job before building the Docker image.
-
-This saves resources and prevents invalid code from progressing through the pipeline.
-
 
 ## Lab 1 Deliverables
 
@@ -277,7 +242,7 @@ This saves resources and prevents invalid code from progressing through the pipe
 | Answers to questions 1–5 | "Questions & Answers" Section of this README |
 
 
-## Lab 2 — Kubernetes, Multi-Environment Deployment and Audit
+## Lab 2 — Kubernetes, Multi-environment Deployment and Audit
 
 ### Kubernetes Cluster Setup
 
@@ -393,7 +358,8 @@ Kubernetes rollout history, events, deployment information, and RBAC test result
 
 The project includes deployment annotations and GitHub CI/CD information to support traceability between application versions and infrastructure changes.
 
-### Lab 2 Deliverables
+
+## Lab 2 Deliverables
 
 - Kubernetes manifests: `k8s/base/`
 - Environment overlays: `k8s/overlays/`
@@ -458,7 +424,7 @@ The pipeline initially detected configuration and security issues. These were ad
 
 All three jobs subsequently completed successfully.
 
-### Lab 3 Evidence
+## Lab 3 Evidence
 
 - [Kubernetes namespaces](infra/evidence/namespaces.txt)
 - [PR #43 deployment](infra/evidence/preview-pr43.txt)
