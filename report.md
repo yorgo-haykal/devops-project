@@ -43,4 +43,16 @@ itself?
  The namespace allows us to divide one cluster into multiple smaller clusters which allows us to have different sessions or environment for example. 
  By itself it doesn't provide much safety but if you add rules on how you can push code from one environment to the other it will be more secure.
 
- 
+ Question 5. How does this pattern help with hybrid/multi-cloud deployments? What would
+differ between a real on-prem cluster and a cloud cluster?
+
+the pattern Kustomize helps because the base defines the source of truth which allows to avoid duplicates and differences of configurations on different devices like on cloud or on prem. 
+It also allows it to be more portable (one api for everything) and you can see the changes and differences between environement more easily. 
+
+the difference between an on prem configuration and an on cloud would be : 
+- availability issues
+- scalability
+- access to the data with or without internet. 
+- exposition of the network (if the load is correctly balanced)
+- storage
+- cost issues 
