@@ -11,11 +11,18 @@ terraform {
 }
 
 variable "pr_number" {
-  type = string
+  type        = string
+  description = "Pull Request number used to create the preview environment"
 }
 
 variable "image" {
-  type = string
+  type        = string
+  description = "Container image pinned to a SHA256 digest"
+
+  validation {
+    condition     = can(regex("@sha256:[a-f0-9]{64}$", var.image))
+    error_message = "The image must be pinned to a SHA256 digest."
+  }
 }
 
 provider "kubernetes" {
@@ -35,6 +42,9 @@ resource "kubernetes_namespace" "preview" {
 }
 
 resource "kubernetes_deployment" "app" {
+  #checkov:skip=CKV_K8S_14:Image digest is enforced by Terraform variable validation
+  #checkov:skip=CKV_K8S_43:Image digest is enforced by Terraform variable validation
+
   metadata {
     name      = "myapp"
     namespace = kubernetes_namespace.preview.metadata[0].name
