@@ -90,3 +90,25 @@ This creates configuration drift between the Git repository and the running clus
 As a result, it becomes harder to determine who changed the configuration, why it was changed, and how to reproduce or roll back the modification.
 
 A safer approach is to manage production changes through version-controlled manifests, reviewed Pull Requests, and controlled deployment pipelines.
+
+---
+
+# DevOps Lab — Session 3: Terraform, Environments and Ephemeral Previews
+
+## Question 1 — Manual Deletion and Configuration Drift
+
+**What did Terraform propose after you deleted the container by hand? What is this situation called?**
+
+Terraform proposes to create the container again. 
+
+This situation is called configuration drift. The real infrastructure drifts from what the configuration and the state decribes. Running `terraform apply` removes the drift by recreating the missing resource and restoring the desired state.
+
+## Question 2 — Terraform State and Git
+
+**Why should the state file never be committed to Git?**
+
+The state file (`terraform.tfstate`) can contain sensitive data. Once committed, this data remains in the Git history and is visible to anyone with access to the repository. So if the repository is public everyone will able to see the secrets and it's very hard to remove once created. 
+
+The state is also a generated file that changes with every `apply`. Keeping it in Git leads to merge conflicts, outdated copies, and no locking mechanism, so two people applying at the same time can corrupt it or overwrite each other's changes.
+
+This is why we added the files in the .gitignore. 
