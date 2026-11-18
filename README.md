@@ -1,277 +1,147 @@
-# devops-project
+# DevOps Lab Session 2: Kubernetes, Multi-environment Deployment and Audit
 
-Minimal Flask API for the DevOps continuous deployment course.
+## 1 Part 1: Local Cluster Setup 
 
-## Team members 
-Koffi Jean-Luc Junior ADJIEY 
-Yorgo HAYKAL 
-Léanna SUISSA
-Lucie MOREAU 
-
-## Endpoints
-
-| Method | Path      | Response |
-|--------|-----------|----------|
-| GET    | `/health` | `OK` (200) |
-
-## Run locally
-
+### 1.1 Create a local cluster with kind.
 ```bash
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
-curl http://localhost:5000/health
+kind create cluster --name devops-cluster
 ```
+### 1.2 Verify the cluster and nodes.
+![alt text](screenshots/image.png)
+### 1.3 Create three namespaces: dev, staging, prod.
+![alt text](screenshots/image-1.png)
 
-## Branch protection
-
-- `main` is protected: all changes go through a Pull Request, which require an approving review and successful automated checks before merging.
-
-- `build-test` job is configured as a required status check.
+### Question 1. What is the role of a namespace? Does it provide strong security isolation by itself?
+A namespace divides a Kubernetes cluster into different environments, such as dev, staging and prod. It helps organize resources and manage access. However, a namespace alone does not provide strong security isolation. We also need RBAC to control who can access resources.
 
 
-## Docker Containerization
+## 2 Part 2: First Deployment
 
-The application is packaged as a Docker image using a lightweight Python base image.
+### In a new folder k8s/base/, create deployment.yaml and service.yaml for your image from Session 1 (3 replicas, port 3000).
+![alt text](screenshots/image-3.png)
+![alt text](screenshots/image-2.png)
+### 2.1 Apply the manifests in the dev namespace.
+![alt text](screenshots/image-21.png)
+the first time I have created in sted of unchanged because Kubernetes just created the resource and now The resource exists
+### 2.2 Check pods, deployment and service.
+![alt text](screenshots/image-4.png)
+### 2.3 Reach the application with kubectl port-forward.
+![alt text](screenshots/image-5.png)
+### 2.4 Delete one pod manually and observe what happens.
+![alt text](screenshots/image-6.png)
+### 2.5 Scale to 5 replicas, then back to 3.
+![alt text](screenshots/image-7.png)
 
-The Dockerfile uses `python:3.12-slim`, installs the application dependencies, creates a non-root user and exposes port `5000`.
+### Question 2. Why does Kubernetes recreate the deleted pod? Which component is responsible?
+Kubernetes recreates the deleted Pod to maintain the desired number of replicas defined in the Deployment. The ReplicaSet is responsible for creating a new Pod when one is deleted.
+The Deployment manages the ReplicaSet to make sure the application has the correct number of Pods.
 
-A `.dockerignore` file excludes unnecessary development files from the Docker build context.
 
-### Build the Docker Image
+## 3 Part 3: Probes, Resources and Configuration
 
+### 3.1 Add a readinessProbe and a livenessProbe on /health.
+![alt text](screenshots/image-8.png)
+### 3.2 Add resource requests and limits.
+![alt text](screenshots/image-9.png)
+### 3.3 Create a ConfigMap with APP_ENV and inject it as an environment variable.
+![alt text](screenshots/image-11.png)
+![alt text](screenshots/image-10.png)
+### 3.4 Create a Secret with a fake API key and mount it as an environment variable.
+![alt text](screenshots/image-12.png)
+![alt text](screenshots/image-13.png)
+### 3.5 Break the probe path on purpose and observe pod behavior with kubectl describe.
+![alt text](screenshots/image-14.png)
+![alt text](screenshots/image-15.png)
+
+### Question 3. What is the difference between a readiness and a liveness probe? What happens to traffic when readiness fails?
+A readiness probe checks if the application is ready to receive traffic. A liveness probe checks if the application is working correctly. If readiness fails, the Pod stops receiving traffic.
+### Question 4. Is a Kubernetes Secret encrypted by default? How would you improve this?
+No, Kubernetes Secrets are not encrypted by default. They are encoded in Base64. We can improve security by enabling encryption and using RBAC to control access.
+
+
+## 4 Part 4: Multi-environment with Kustomize
+
+### Organize the manifests as base + overlays, simulating three deployment targets (for example dev, staging, prod, standing for on-prem, cloud A, cloud B).
+
+### 4.1 Write the base kustomization.yaml and the three overlays (different replicas, namespace and labels per environment).
+![alt text](screenshots/image-19.png)
+
+![alt text](screenshots/image-16.png)
+![alt text](screenshots/image-17.png)
+![alt text](screenshots/image-18.png)
+### 4.2 Preview the rendered output with kubectl kustomize.
 ```bash
-docker build -t myapp:0.1 .
+kubectl kustomize k8s/overlays/dev
+kubectl kustomize k8s/overlays/staging
+kubectl kustomize k8s/overlays/prod
 ```
 
-### Run the Container
-
+### 4.3 Deploy each overlay to its namespace.
 ```bash
-docker run -d -p 5000:5000 --name myapp myapp:0.1
+kubectl apply -k k8s/overlays/dev
+kubectl apply -k k8s/overlays/staging
+kubectl apply -k k8s/overlays/prod
 ```
-
-### Verify the Endpoint
-
 ```bash
-curl http://localhost:5000/health
-```
-
-Expected output:
-
-```text
-OK
-```
-
-### Inspect the Container
-
-View the application logs:
-
+NAMESPACE            NAME                     READY   UP-TO-DATE 
+dev                  devops-project           2/2     2            
+prod                 devops-project           5/5     5            
+staging              devops-project           3/3     3            
+``` 
+### 4.4 Verify the differences between environments.
 ```bash
-docker logs myapp
+kubectl kustomize pk je 8s/overlays/dev
+kubectl kustomize k8s/overlays/staging
+kubectl kustomize k8s/overlays/prod
 ```
+![alt text](screenshots/image-22.png)
 
-Open a shell inside the container:
+### Question 5. How does this pattern help with hybrid/multi-cloud deployments? What would differ between a real on-prem cluster and a cloud cluster?
+Kustomize allows us to use the same base configuration in different environments. Only the overlays change. In a real on-prem cluster and a cloud cluster, the infrastructure and storage settings may be different, but the application configuration can stay mostly the same.
 
+
+## 5 Part 5: Rolling Update and Rollback
+
+### 5.2 Watch the rollout and verify there is no downtime.
+![alt text](screenshots/image-23.png)
+### 5.3 Deploy a broken image tag on purpose and observe the failed rollout.
+newTag: "broken"
 ```bash
-docker exec -it myapp sh
+kubectl rollout status deployment/devops-project -n dev --timeout=30s
+Waiting for deployment "devops-project" rollout to finish: 1 out of 2 new replicas have been updated...
+error: timed out waiting for the condition
 ```
+### 5.4 Roll back and check the revision history.
+![alt text](screenshots/image-24.png)
 
-Verify that the container runs as a non-root user:
+### Question 6. Why did the broken rollout not take down the application?
+The broken rollout did not take down the application because Kubernetes kept the old working pods running until the new pods were ready
 
+
+## 6 Part 6: Audit and Traceability
+
+### 6.1 Add annotations to the Deployment: commit SHA, pipeline run URL, owner, ticket reference.
 ```bash
-whoami
+kubectl annotate deployment devops-project -n prod git-commit="88a8bb50023441e3ea44c8f77d6e4f41eddac03a" owner="team-a" ticket="OPS-123"
+deployment.apps/devops-project annotated
 ```
-
-Expected output:
-
-```text
-appuser
-```
-
-### Docker Image Size Comparison
-
-Two Docker images were built and compared.
-
-| Base image | Disk usage |
-|---|---:|
-| `python:3.12-slim` | 198 MB |
-| `python:3.12` | 1.62 GB |
-
-The slim-based image uses approximately **87.8% less disk space** than the full Python-based image.
-
-This demonstrates the benefits of choosing a lightweight base image.
-
-
-## Continuous Integration Pipeline
-
-The CI pipeline is implemented using GitHub Actions.
-
-**Workflow:** [`.github/workflows/ci.yml`](https://github.com/yorgo-haykal/devops-project/blob/main/.github/workflows/ci.yml)
-
-### CI Pipeline Steps
-
-The `build-test` job performs the following operations:
-
-1. Checks out the repository.
-2. Sets up Python 3.12.
-3. Installs application and development dependencies.
-4. Runs Ruff linting.
-5. Executes automated tests using Pytest.
-6. Builds the Docker image.
-
-The workflow runs automatically on configured push and Pull Request events.
-
-### Automated Health Endpoint Test
-
-The application includes an automated test that verifies:
-
-- The `/health` endpoint responds with HTTP status code `200`.
-- The response body contains `OK`.
-
-### Failed Pipeline Demonstration
-
-To demonstrate CI failure detection, the expected HTTP status code was deliberately changed from `200` to `404`.
-
-Since the application returned `200`, the test failed.
-
-GitHub Actions reported a failed pipeline, demonstrating that the CI workflow detects incorrect code.
-
-![Failed CI Pipeline](screenshots/pipeline-failed.png)
-
-### Successful Pipeline Demonstration
-
-After restoring the correct expected status code (`200`), the automated tests passed and the CI pipeline completed successfully.
-
-The final pipeline executed on `main` also completed successfully, including the image publication job.
-
-![Successful CI Pipeline](screenshots/pipeline-success.png)
-
-
-## Continuous Delivery — Docker Image Publication
-
-After successful validation, the `publish` job automatically publishes the Docker image to GitHub Container Registry.
-
-The publication job:
-
-1. Waits for `build-test` to succeed.
-2. Runs only after a push to `main`.
-3. Authenticates to GHCR using the automatically provided `GITHUB_TOKEN`.
-4. Builds and publishes the Docker image.
-5. Tags the image using the Git commit SHA.
-
-### Published Docker Image
-
-**Registry:** GitHub Container Registry
-
-**Package:** [devops-project on GHCR](https://github.com/yorgo-haykal/devops-project/pkgs/container/devops-project)
-
-**Image:**
-
-```text
-ghcr.io/yorgo-haykal/devops-project:e2aafa2142832bec55000f5885e0289a58476e97
-```
-
-### Pull the Published Image
-
+### 6.3 Create a read-only Role and RoleBinding for a “viewer” service account and test what it can and cannot do.
 ```bash
-docker pull ghcr.io/yorgo-haykal/devops-project:e2aafa2142832bec55000f5885e0289a58476e97
+kubectl create serviceaccount viewer -n dev
+kubectl create role pod-reader --verb=get,list,watch --resource=pods -n dev
+kubectl create rolebinding viewer-binding --role=pod-reader --serviceaccount=dev:viewer -n dev
+```
+```bash
+ kubectl auth can-i delete pods -n dev --as=system:serviceaccount:dev:viewer
+no
+kubectl auth can-i list pods -n dev --as=system:serviceaccount:dev:viewer
+yes
 ```
 
-### Security
-
-No passwords or authentication tokens are stored in plain text in the repository.
-
-The pipeline uses GitHub Actions' automatically generated `GITHUB_TOKEN` to authenticate securely to GHCR.
-
-The publication job is granted the `packages: write` permission required to publish container images.
-
-## CI/CD Traceability
-
-The CI/CD workflow provides traceability between the source code, the pipeline execution and the published image.
-
-### Source Commit
-
-**Branch:** `main`
-
-**Commit SHA:**
-
-```text
-e2aafa2142832bec55000f5885e0289a58476e97
-```
-
-**Pull Request:** [PR #4](https://github.com/yorgo-haykal/devops-project/pull/4)
-
-### Pipeline Execution
-
-After the Pull Request was merged, GitHub Actions executed the workflow on `main`.
-
-| Job | Status | Duration |
-|---|---|---|
-| `build-test` | Success | 26 seconds |
-| `publish` | Success | 34 seconds |
-
-**Total workflow duration:** 1 minute 7 seconds.
-
-### Published Artifact
-
-The Docker image was successfully published to GHCR with a tag matching the source commit SHA.
-
-**Traceability chain:**
-
-`Source commit → build-test → publish → GHCR image`
-
-Using the commit SHA makes it possible to identify the exact source code version associated with the published Docker image.
+### Question 7. Starting from a pod running in production, how can you find the commit, the reviewer and the pipeline run that produced it?
+We can use kubectl describe to find the image tag and annotations. The commit SHA and pipeline URL help us find the commit, reviewer and GitHub Actions run
+### Question 8. Why is manual kubectl edit in production a traceability risk?
+Because manual changes are not saved in Git. It is difficult to know who made the changes, why they were made and when
 
 
-## Questions & Answers
 
-### Question 1: Why forbid direct pushes to main?
-
-Direct pushes to `main` are forbidden to protect the stability of the project. Pull Requests allow developers to review changes, run automated tests and detect potential problems before merging code into the main branch.
-
-### Question 2: What is the difference between an image and a container?
-
-A Docker image is a read-only template containing the application, its dependencies and the environment required to run it.
-
-A Docker container is a running instance of an image. Multiple containers can be created from the same image.
-
-### Question 3: Compare the size of your image with a non-slim base image. What do you observe?
-
-We built two Docker images using different Python base images.
-
-| Base image | Disk usage |
-|---|---:|
-| `python:3.12-slim` | 198 MB |
-| `python:3.12` | 1.62 GB |
-
-The slim image is approximately 87.8% smaller.
-
-This is because slim images exclude many unnecessary system packages and tools. Using slim images reduces storage requirements and can improve image transfer times.
-
-### Question 4: Why tag the image with the commit SHA rather than latest?
-
-Using the commit SHA provides a unique identifier that links the Docker image to a specific version of the source code.
-
-It improves traceability and reproducibility and makes it easier to identify or roll back to a specific version.
-
-The `latest` tag is mutable and does not reliably identify a specific version.
-
-### Question 5: What does "fail fast" mean in a pipeline?
-
-Fail fast means stopping the pipeline as soon as a critical step fails, instead of continuing with unnecessary operations.
-
-For example, when our automated health endpoint test failed, GitHub Actions stopped the job before building the Docker image.
-
-This saves resources and prevents invalid code from progressing through the pipeline.
-
-
-## Lab Deliverables
-
-| Required deliverable | Evidence |
-|---|---|
-| GitHub repository with Dockerfile, CI workflow and tests | [GitHub Repository](https://github.com/yorgo-haykal/devops-project) |
-| Screenshot of a failing pipeline | [Failed Pipeline](screenshots/pipeline-failed.png) |
-| Screenshot of a successful pipeline | [Successful Pipeline](screenshots/pipeline-success.png) |
-| Published Docker image | [GHCR Package](https://github.com/yorgo-haykal/devops-project/pkgs/container/devops-project) |
-| Answers to questions 1–5 | "Questions & Answers" Section of this README |

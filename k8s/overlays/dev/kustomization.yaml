@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: dev
+resources:
+- ../../base
+
+replicas:
+- name: devops-project
+  count: 2
+
+images:
+- name: ghcr.io/yorgo-haykal/devops-project
+  newTag: "1a20d81657f1cf3c3e658750befb157d38e227ef"
+
+commonLabels:
+  env: dev

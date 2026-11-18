@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: staging
+resources:
+- ../../base
+
+replicas:
+- name: devops-project
+  count: 3
+
+images:
+- name: ghcr.io/yorgo-haykal/devops-project
+  newTag: "88a8bb50023441e3ea44c8f77d6e4f41eddac03a"
+
+commonLabels:
+  env: staging 
