@@ -7,18 +7,16 @@ terraform {
   }
 }
 
-provider "docker" {}
-
-resource "docker_image" "nginx" {
-  name = "nginx:1.27"
+resource "docker_image" "app" {
+  name = var.image
 }
 
 resource "docker_container" "web" {
-  name  = "tf-web"
-  image = docker_image.nginx.image_id
+  name  = "${var.env_name}-web"
+  image = docker_image.app.image_id
 
   ports {
     internal = 80
-    external = 8082
+    external = var.external_port
   }
 }

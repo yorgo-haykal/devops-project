@@ -112,3 +112,11 @@ The state file (`terraform.tfstate`) can contain sensitive data. Once committed,
 The state is also a generated file that changes with every `apply`. Keeping it in Git leads to merge conflicts, outdated copies, and no locking mechanism, so two people applying at the same time can corrupt it or overwrite each other's changes.
 
 This is why we added the files in the .gitignore. 
+
+## Question 3 — One Folder per Environment vs Workspaces
+
+**What are the advantages of one folder and one state per environment compared to workspaces?**
+
+With one folder per environment (`envs/dev`, `envs/staging`), each environment has its own configuration, its own `.tfvars` file and its own state. It's explicit and everything is isolated. A mistake in `dev` cannot affect `staging`, because the states are completely separate. 
+
+With workspaces, more simple and it has the same code but it can lead to som duplications.

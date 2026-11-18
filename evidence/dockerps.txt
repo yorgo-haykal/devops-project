@@ -1,0 +1,76 @@
+lab 3 question 2.4
+
+ops-project>  terraform -chdir=infra/envs/dev init
+Initializing the backend...
+
+Initializing modules...
+
+Initializing provider plugins...
+- Reusing version 3.9.0 of kreuzwerker/docker from the dependency lock file
+- Using previously-installed kreuzwerker/docker v3.9.0
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> terraform -chdir=infra/envs/dev apply "-var-file=dev.tfvars"
+module.webapp.docker_image.app: Refreshing state... [id=sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b34ae33d3c1c05f7dnginx:1.27]
+module.webapp.docker_container.web: Refreshing state... [id=029ce8ec2a7c9e70abc12106f1c9783d6af853de6cfd79fad3c627adc2ce82ed]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your
+configuration and found no differences, so no changes are
+needed.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+app_url = "http://localhost:8083"
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> terraform -chdir=infra/envs/staging init
+Initializing the backend...
+
+Initializing modules...
+
+Initializing provider plugins...
+- Reusing version 3.9.0 of kreuzwerker/docker from the dependency lock file
+- Using previously-installed kreuzwerker/docker v3.9.0
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> terraform -chdir=infra/envs/staging apply "-var-file=staging.tfvars"
+module.webapp.docker_image.app: Refreshing state... [id=sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b34ae33d3c1c05f7dnginx:1.27]
+module.webapp.docker_container.web: Refreshing state... [id=cae02c0b0565a8d706eb3d476855f268839ec4dd533fb2cda7063ebef4cc4a76]
+
+No changes. Your infrastructure matches the configuration.
+
+Terraform has compared your real infrastructure against your
+configuration and found no differences, so no changes are
+needed.
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+app_url = "http://localhost:8084"
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> docker ps
+CONTAINER ID   IMAGE                           COMMAND                  CREATED         STATUS         PORTS                                         NAMES
+cae02c0b0565   6784fb0834aa                    "/docker-entrypoint.…"   5 minutes ago   Up 5 minutes   0.0.0.0:8084->80/tcp                          staging-web
+029ce8ec2a7c   6784fb0834aa                    "/docker-entrypoint.…"   6 minutes ago   Up 6 minutes   0.0.0.0:8083->80/tcp                          dev-web
+dd0f87dbe050   kindest/node:v1.37.0            "/usr/local/bin/entr…"   26 hours ago    Up 26 hours    127.0.0.1:51930->6443/tcp                     devops-lab-control-plane
+f51e53cb3108   2bb7326b3b4b                    "python app.py"          30 hours ago    Up 30 hours    0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp   myapp
+851acd901fc6   moby/buildkit:buildx-stable-1   "/usr/bin/buildkitd-…"   30 hours ago    Up 30 hours                                                  buildx_buildkit_desktop-linux
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project>

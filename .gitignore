@@ -27,3 +27,6 @@ override.tf.json
 .idea/
 .vscode/
 .DS_Store
+
+# Environment tfvars hold no secrets: keep them versioned
+!infra/envs/*/*.tfvars
