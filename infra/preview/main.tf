@@ -1,3 +1,4 @@
+
 terraform {
   required_providers {
     kubernetes = {
@@ -62,6 +63,26 @@ resource "kubernetes_deployment" "app" {
 
           port {
             container_port = 5000
+          }
+
+          readiness_probe {
+            http_get {
+              path = "/health"
+              port = 5000
+            }
+
+            initial_delay_seconds = 5
+            period_seconds        = 10
+          }
+
+          liveness_probe {
+            http_get {
+              path = "/health"
+              port = 5000
+            }
+
+            initial_delay_seconds = 15
+            period_seconds        = 20
           }
         }
       }

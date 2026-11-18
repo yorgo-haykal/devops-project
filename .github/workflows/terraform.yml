@@ -67,7 +67,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Initialize DEV configuration
-        run: terraform -chdir=infra/envs/dev init -backend=false
+        run: terraform -chdir=infra/envs/dev init -reconfigure -backend-config="path=../../state/ci-dev.tfstate"
 
       - name: Generate Terraform plan
         run: terraform -chdir=infra/envs/dev plan -var-file=dev.tfvars -out=tfplan
