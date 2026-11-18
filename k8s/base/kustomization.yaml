@@ -5,3 +5,8 @@ resources:
   - deployment.yaml
   - service.yaml
   - configmap.yaml
+
+images:
+    - name: ghcr.io/yorgo-haykal/devops-project
+      newName: myapp
+      newTag: broken

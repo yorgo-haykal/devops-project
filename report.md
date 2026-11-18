@@ -56,3 +56,14 @@ the difference between an on prem configuration and an on cloud would be :
 - exposition of the network (if the load is correctly balanced)
 - storage
 - cost issues 
+
+question 6
+broken image : 
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project>   kubectl get pods -n dev
+NAME                     READY   STATUS         RESTARTS   AGE
+curl-test                1/1     Running        0          47s
+myapp-6c74fc7cf8-8sbcp   0/1     ErrImagePull   0          5s
+myapp-b8bf6cb8f-njlvc    1/1     Running        0          10m
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project>
+
+
