@@ -120,3 +120,23 @@ This is why we added the files in the .gitignore.
 With one folder per environment (`envs/dev`, `envs/staging`), each environment has its own configuration, its own `.tfvars` file and its own state. It's explicit and everything is isolated. A mistake in `dev` cannot affect `staging`, because the states are completely separate. 
 
 With workspaces, more simple and it has the same code but it can lead to som duplications.
+
+## Question 4 — Remote Backend and State Locking
+
+**Why is a remote backend with locking essential for a team? Which problems does it prevent?**
+
+A remote backend stores the state in one shared place instead of on one laptop. Locking ensures that only one `apply` can modify the state at a time. Otherwise two developpers could corrupt the files by commiting at the same time
+
+A remote backend prevents:
+- Out-of-date or lost state
+- Secrets in Git
+- Lack of traceability and security
+
+## Question 5 — Sensitive Information in the State
+
+**What information in a state file can be sensitive?**
+
+- Passwords and secrets: database passwords, API keys, tokens, and private keys generated or passed to resources.
+- Connection information: endpoints, IP addresses, usernames ...
+- Environment variables.
+- Infrastructure details: resource IDs, network layout and names, which help an attacker to map the infrastructure.

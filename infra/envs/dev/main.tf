@@ -1,4 +1,8 @@
 terraform {
+  backend "local" {
+    path = "../../shared-state/dev/terraform.tfstate"
+  }
+
   required_providers {
     docker = {
       source  = "kreuzwerker/docker"

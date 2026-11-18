@@ -12,8 +12,7 @@ __pycache__/
 
 # Terraform
 .terraform/
-*.tfstate
-*.tfstate.*
+*.tfstate*
 *.tfvars
 !*.tfvars.example
 crash.log
@@ -30,3 +29,6 @@ override.tf.json
 
 # Environment tfvars hold no secrets: keep them versioned
 !infra/envs/*/*.tfvars
+# ...except any tfvars holding secrets
+*.secret.tfvars
+secrets.tfvars
