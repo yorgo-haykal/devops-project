@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: dev
+
+resources:
+  - ../../base
+
+replicas:
+  - name: myapp
+    count: 3
+
+labels:
+  - pairs:
+      env: dev
+    includeSelectors: false
+
+configMapGenerator:
+  - name: myapp-config
+    literals:
+      - APP_ENV=dev
+
+secretGenerator:
+  - name: myapp-secret
+    literals:
+      - API_KEY=changeme
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+images:
+  - name: ghcr.io/yorgo-haykal/devops-project
+    newTag: 88a8bb50023441e3ea44c8f77d6e4f41eddac03a

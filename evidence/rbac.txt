@@ -1,0 +1,10 @@
+=== RBAC TEST RESULTS ===
+
+1. List pods in dev:
+yes
+
+2. Delete pods in dev:
+no
+
+3. List pods in prod:
+no
