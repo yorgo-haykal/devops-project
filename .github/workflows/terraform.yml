@@ -1,0 +1,77 @@
+name: terraform
+
+# Runs only on Pull Requests that touch infra/**.
+# There is deliberately NO "terraform apply" anywhere in this workflow.
+on:
+  pull_request:
+    paths: ["infra/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: [envs/dev, envs/staging, preview]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Init (no backend)
+        run: terraform -chdir=infra/${{ matrix.dir }} init -backend=false
+
+      - name: Format check
+        run: terraform -chdir=infra/${{ matrix.dir }} fmt -check
+
+      - name: Validate
+        run: terraform -chdir=infra/${{ matrix.dir }} validate
+
+  plan:
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      matrix:
+        env: [dev, staging]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Init (no backend)
+        run: terraform -chdir=infra/envs/${{ matrix.env }} init -backend=false
+
+      - name: Plan
+        run: |
+          terraform -chdir=infra/envs/${{ matrix.env }} plan \
+            -var-file=${{ matrix.env }}.tfvars -no-color -out=tfplan
+          terraform -chdir=infra/envs/${{ matrix.env }} show -no-color tfplan \
+            > plan-${{ matrix.env }}.txt
+
+      - name: Upload plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-${{ matrix.env }}
+          path: infra/envs/${{ matrix.env }}/plan-${{ matrix.env }}.txt
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Trivy config scan (fails on HIGH or CRITICAL)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: infra
+          severity: HIGH,CRITICAL
+          exit-code: "1"
