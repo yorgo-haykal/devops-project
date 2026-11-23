@@ -151,3 +151,18 @@ Three mitigations:
 1. Automatic destruction when the PR is closed or merged.
 2. Expiration labels and a scheduled cleanup job.
 3. Quotas and limits on each preview namespace cap the resources a forgotten preview can use, and a regular report of existing previews helps to detect the ones that should be removed.
+
+## Question 7 — Plan on Pull Request, Apply After Merge
+
+**Why run plan on a Pull Request but apply only after merge?**
+
+The answer lies in the fact that `plan` is read-only. Which means that it shows what would change without touching the infrastructure. Running it on a Pull Request lets reviewers see the exact impact of the change before approving.
+
+`apply` changes real infrastructure, which is why we put it after the merge. That way, it only runs on code that has been reviewed and merged. Applying from an unmerged PR would let unreviewed code modify the environments, and several open PRs could apply conflicting changes to the same state. Applying only from the main branch keeps it the single source of truths.
+
+## Question 8 — Short-lived Credentials (OIDC) in CI
+
+**Why should a CI pipeline use short-lived credentials (OIDC) rather than long-lived access keys?**
+
+The longer an access key exists the more people may see it and the more compromised it may be. Long-lived access keys are stored as secrets in the CI system. If they leak (logs, a compromised workflow, a malicious dependency, a fork), an attacker can use them until someone notices and rotates them, which is often never.
+With OIDC, the pipeline requests a temporary token for each run. the credentials expire after a few minutes or hours. This reduces the blast radius and removes the rotation work.
