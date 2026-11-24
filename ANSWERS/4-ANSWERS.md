@@ -131,6 +131,16 @@ For example, if most requests complete in 50 ms but some take 2 seconds, the ave
 
 Monitoring p95 therefore provides a better view of tail latency and user experience than relying only on the average.
 
+### Evidence
+
+The Grafana dashboard displays the four Golden Signals:
+traffic, errors, latency, and saturation.
+
+The screenshot below was captured during the simulated incident,
+showing a significant increase in HTTP 5xx errors.
+
+![Grafana dashboard during the incident](../screenshots/lab4/part4/4-dashboard-incident.png)
+
 
 ## Part 5 — Alerting
 
