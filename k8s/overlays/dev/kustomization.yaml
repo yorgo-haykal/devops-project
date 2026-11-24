@@ -30,4 +30,4 @@ generatorOptions:
 
 images:
   - name: ghcr.io/yorgo-haykal/devops-project
-    newTag: 88a8bb50023441e3ea44c8f77d6e4f41eddac03a
+    newTag: f8bac8baba69535cb2af0c55f6527cb1c0d80ab5
