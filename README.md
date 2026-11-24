@@ -477,6 +477,55 @@ The `kube-prometheus-stack` Helm chart was installed in the `monitoring` namespa
 - Prometheus is reached with `kubectl port-forward` on port 9091.
 - The pre-installed Kubernetes dashboards and the Prometheus targets were checked. Some control plane targets (for example `kube-controller-manager` and `etcd`) are `DOWN`, because kind does not expose their metrics endpoints to the cluster network.
 
+### Part 3 — Scrape the Application
+
+A `ServiceMonitor` was created to allow Prometheus to automatically discover and scrape the Flask application deployed in the `dev` namespace.
+
+- The Kubernetes Service was updated to expose a named port `http` (port 80, targeting container port 5000).
+- The `ServiceMonitor` is defined in `monitoring/servicemonitor.yaml` and uses the label `release: monitoring`.
+- Prometheus scrapes the `/metrics` endpoint every 15 seconds.
+- The three application targets were verified as `UP` in the Prometheus Targets page.
+- HTTP traffic was generated and the `http_requests_total` metric was successfully queried in Prometheus.
+
+### Part 4 — PromQL and Grafana Dashboard
+
+A Grafana dashboard named **DevOps Lab 4 — Flask Observability** was created to monitor the four Golden Signals.
+
+- **Traffic:** HTTP requests per second, calculated using `rate(http_requests_total[5m])`.
+- **Errors:** Percentage of HTTP 5xx responses relative to total requests.
+- **Latency:** 95th percentile of HTTP request duration, calculated using `histogram_quantile()`.
+- **Saturation:** Memory consumption of the Kubernetes application pods.
+
+The dashboard contains four panels, one for each signal, and was exported to `monitoring/dashboards/flask-observability.json`.
+
+During the simulated incident, the dashboard showed a traffic increase and an HTTP 5xx error-rate peak of approximately 27%.
+
+### Part 5 — Alerting and Runbook
+
+A Prometheus alerting rule named `HighErrorRate` was created in `monitoring/prometheusrule.yaml`.
+
+- The alert triggers when the HTTP 5xx error ratio exceeds 10% for at least 2 minutes.
+- The alert has the severity label `critical` and includes a reference to the incident runbook.
+- HTTP errors were generated repeatedly through the `/error` endpoint to simulate an application incident.
+- The alert was observed transitioning from `INACTIVE` to `PENDING`, then to `FIRING`.
+- After the simulated error traffic stopped, the alert returned to `INACTIVE`.
+
+A runbook was written in `docs/runbook.md`, documenting symptoms, diagnostic commands, mitigation procedures, rollback and escalation.
+
+### Part 6 — Incident Simulation and Postmortem
+
+A controlled Kubernetes deployment failure was simulated in the `dev` namespace.
+
+- The deployment's readiness probe was intentionally changed from `/health` to `/health-broken`.
+- The new pod failed its readiness checks and remained `0/1 Ready`, while the previous healthy replicas continued serving traffic.
+- The failure was investigated using Kubernetes deployment status, pod descriptions and readiness-probe events.
+- A rollback was performed using `kubectl rollout undo`.
+- The deployment recovered successfully, with three healthy replicas and the readiness probe restored to `/health`.
+
+A blameless postmortem was documented in `docs/postmortem.md`, including the incident summary, impact, UTC timeline, root cause, contributing factors and corrective actions.
+
+The simulated failure affected the new deployment rollout without causing a complete service outage.
+
 ### Lab 4 Evidence
 
 - [Test endpoints: server logs and requests](evidence/lab4/lab4-part1-1.2.txt)
@@ -487,3 +536,11 @@ The `kube-prometheus-stack` Helm chart was installed in the `monitoring` namespa
 - [Prometheus targets](screenshots/lab4/part2/2.4-target.png)
 - [Prometheus targets in DOWN state](screenshots/lab4/part2/2.4-target-down.png)
 - [Answers to Lab 4 questions](ANSWERS/4-ANSWERS.md)
+- [ServiceMonitor manifest](monitoring/servicemonitor.yaml)
+- [Grafana dashboard JSON](monitoring/dashboards/flask-observability.json)
+- [Grafana dashboard during the incident](screenshots/lab4/part4/4-dashboard-incident.png)
+- [Prometheus alert rule](monitoring/prometheusrule.yaml)
+- [Prometheus alert in PENDING state](screenshots/lab4/part5/5.8-alert-pending.png)
+- [Prometheus alert in FIRING state](screenshots/lab4/part5/5.8-alert-firing.png)
+- [Incident response runbook](docs/runbook.md)
+- [Blameless postmortem](docs/postmortem.md)
