@@ -72,6 +72,11 @@ Three mitigations are:
 
 In our lab, we created `pr-42` and `pr-43` with separate Terraform states, then destroyed `pr-42` without affecting `pr-43`.
 
+Evidence:
+- [evidence/lab3/lab3-part4-4.4-namespaces.txt](../evidence/lab3/lab3-part4-4.4-namespaces.txt)
+- [evidence/lab3/lab3-part4-4.3-preview-pr43.txt](../evidence/lab3/lab3-part4-4.3-preview-pr43.txt)
+- [evidence/lab3/lab3-part4-4.3-preview-state.txt](../evidence/lab3/lab3-part4-4.3-preview-state.txt)
+
 ## Part 5 — Terraform in CI with Security Scanning
 
 ### Q7. Why should Terraform plan run on Pull Requests while apply runs only after merge?
