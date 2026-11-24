@@ -54,6 +54,10 @@ In a real hybrid or multi-cloud setup, overlays might differ in replica counts, 
 
 For our lab, we deployed the same container image with three replicas in `dev`, three in `staging`, and five in `prod`.
 
+Evidence:
+- [evidence/lab2/lab2-part4-4.4-dev.txt](../evidence/lab2/lab2-part4-4.4-dev.txt)
+- [evidence/lab2/lab2-part4-4.4-staging.txt](../evidence/lab2/lab2-part4-4.4-staging.txt)
+- [evidence/lab2/lab2-part4-4.4-prod.txt](../evidence/lab2/lab2-part4-4.4-prod.txt)
 
 ## Question 6 — Failed Rolling Update
 
@@ -67,6 +71,12 @@ When we deployed an invalid image tag, the new Pod entered `ErrImagePull`, but t
 
 Kubernetes did not automatically roll back. We restored the previous configuration using `kubectl rollout undo`, and verified that the original image was running again.
 
+Evidence:
+- [evidence/lab2/lab2-part5-5.1-image-update.txt](../evidence/lab2/lab2-part5-5.1-image-update.txt)
+- [evidence/lab2/lab2-part5-5.2-rollout.txt](../evidence/lab2/lab2-part5-5.2-rollout.txt)
+- [evidence/lab2/lab2-part5-5.2-status.txt](../evidence/lab2/lab2-part5-5.2-status.txt)
+- [evidence/lab2/lab2-part5-5.3-rollback-events.txt](../evidence/lab2/lab2-part5-5.3-rollback-events.txt)
+- [evidence/lab2/lab2-part5-5.4-rollout-history.txt](../evidence/lab2/lab2-part5-5.4-rollout-history.txt)
 
 ## Question 7 — Deployment Traceability
 
@@ -85,6 +95,7 @@ The Git commit identifies the deployed source revision. The GitHub Actions run p
 
 To identify the reviewer, follow the commit to its associated GitHub Pull Request and inspect its reviews and approval history. Reviewer information is not automatically stored in the Kubernetes Deployment.
 
+RBAC evidence (`kubectl auth can-i` results): [evidence/lab2/lab2-part6-6.3-rbac.txt](../evidence/lab2/lab2-part6-6.3-rbac.txt)
 
 ## Question 8 — Manual Changes in Production
 

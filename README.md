@@ -36,6 +36,9 @@ Summary. AI sped up learning, writing and troubleshooting. The results were vali
 | Method | Path      | Response |
 |--------|-----------|----------|
 | GET    | `/health` | `OK` (200) |
+| GET    | `/metrics` | Prometheus metrics (text exposition format) |
+| GET    | `/slow`   | Responds after a random delay of up to 2 s |
+| GET    | `/error`  | Returns HTTP 500 about 30% of the time |
 
 ## Run locally
 
@@ -58,6 +61,7 @@ curl http://localhost:5000/health
 - [Lab 1 — Git, CI/CD and Docker](#lab-1--git-cicd-and-docker)
 - [Lab 2 — Kubernetes, Multi-environment Deployment and Audit](#lab-2--kubernetes-multi-environment-deployment-and-audit)
 - [Lab 3 — Terraform, Environments and Ephemeral Previews](#lab-3--terraform-environments-and-ephemeral-previews)
+- [Lab 4 — Observability, Alerting and Incident Response](#lab-4--observability-alerting-and-incident-response)
 
 ## Lab 1 — Git, CI/CD and Docker
 ### Docker Containerization
@@ -166,7 +170,7 @@ Since the application returned `200`, the test failed.
 
 GitHub Actions reported a failed pipeline, demonstrating that the CI workflow detects incorrect code.
 
-![Failed CI Pipeline](screenshots/pipeline-failed.png)
+![Failed CI Pipeline](screenshots/lab1/part3/3.2-pipeline-failed.png)
 
 #### Successful Pipeline Demonstration
 
@@ -174,7 +178,7 @@ After restoring the correct expected status code (`200`), the automated tests pa
 
 The final pipeline executed on `main` also completed successfully, including the image publication job.
 
-![Successful CI Pipeline](screenshots/pipeline-success.png)
+![Successful CI Pipeline](screenshots/lab1/part3/3.3-pipeline-success.png)
 
 
 ### Continuous Delivery — Docker Image Publication
@@ -257,8 +261,8 @@ Using the commit SHA makes it possible to identify the exact source code version
 | Required deliverable | Evidence |
 |---|---|
 | GitHub repository with Dockerfile, CI workflow and tests | [GitHub Repository](https://github.com/yorgo-haykal/devops-project) |
-| Screenshot of a failing pipeline | [Failed Pipeline](screenshots/pipeline-failed.png) |
-| Screenshot of a successful pipeline | [Successful Pipeline](screenshots/pipeline-success.png) |
+| Screenshot of a failing pipeline | [Failed Pipeline](screenshots/lab1/part3/3.2-pipeline-failed.png) |
+| Screenshot of a successful pipeline | [Successful Pipeline](screenshots/lab1/part3/3.3-pipeline-success.png) |
 | Published Docker image | [GHCR Package](https://github.com/yorgo-haykal/devops-project/pkgs/container/devops-project) |
 | Answers to questions 1–5 | "Questions & Answers" Section of this README |
 
@@ -385,7 +389,7 @@ The project includes deployment annotations and GitHub CI/CD information to supp
 - Kubernetes manifests: `k8s/base/`
 - Environment overlays: `k8s/overlays/`
 - RBAC configuration: `k8s/rbac/`
-- Deployment and rollback evidence: `evidence/`
+- Deployment and rollback evidence: `evidence/lab2/`
 - Answers to the eight lab questions: [`ANSWERS/2-ANSWERS.md`](ANSWERS/2-ANSWERS.md)
 
 
@@ -405,7 +409,7 @@ The lab covers Docker resources, reusable modules, isolated environments, state 
 - `infra/envs/dev/`: development environment.
 - `infra/envs/staging/`: staging environment.
 - `infra/preview/`: ephemeral Kubernetes environment per Pull Request.
-- `infra/evidence/`: evidence of infrastructure deployments.
+- `evidence/lab3/`: evidence of infrastructure deployments.
 
 ### Environment Isolation
 
@@ -447,8 +451,39 @@ All three jobs subsequently completed successfully.
 
 ## Lab 3 Evidence
 
-- [Kubernetes namespaces](infra/evidence/namespaces.txt)
-- [PR #43 deployment](infra/evidence/preview-pr43.txt)
-- [PR #43 Terraform state resources](infra/evidence/preview-state.txt)
+- [Kubernetes namespaces](evidence/lab3/lab3-part4-4.4-namespaces.txt)
+- [PR #43 deployment](evidence/lab3/lab3-part4-4.3-preview-pr43.txt)
+- [PR #43 Terraform state resources](evidence/lab3/lab3-part4-4.3-preview-state.txt)
 - [Answers to Lab 3 questions](ANSWERS/3-ANSWERS.md)
 - [Terraform Pull Request #20](https://github.com/yorgo-haykal/devops-project/pull/20)
+
+## Lab 4 — Observability, Alerting and Incident Response
+
+### Part 1 — Instrument the Application
+
+The Flask application exposes Prometheus metrics and writes structured logs:
+
+- `GET /metrics` exposes `http_requests_total` (labels `method`, `route`, `status`) and `http_request_duration_seconds` (labels `method`, `route`), implemented with `prometheus-client`.
+- The `route` label uses the Flask route template and not the real URL, which keeps the label cardinality bounded.
+- Each request produces one JSON log line on stdout (`timestamp`, `level`, `method`, `path`, `status` and the duration).
+- Two test endpoints were added: `/slow` (random delay up to 2 s) and `/error` (HTTP 500 about 30% of the time).
+- The image was built and run locally with Docker before going through the CI pipeline.
+
+### Part 2 — Deploy the Monitoring Stack
+
+The `kube-prometheus-stack` Helm chart was installed in the `monitoring` namespace of the kind cluster (release name `monitoring`). It deploys Prometheus, Alertmanager, Grafana, the Prometheus operator, kube-state-metrics and node-exporter.
+
+- Grafana is reached with `kubectl port-forward` on port 3001, and the `admin` password is read from the `monitoring-grafana` Kubernetes secret.
+- Prometheus is reached with `kubectl port-forward` on port 9091.
+- The pre-installed Kubernetes dashboards and the Prometheus targets were checked. Some control plane targets (for example `kube-controller-manager` and `etcd`) are `DOWN`, because kind does not expose their metrics endpoints to the cluster network.
+
+### Lab 4 Evidence
+
+- [Test endpoints: server logs and requests](evidence/lab4/lab4-part1-1.2.txt)
+- [`/metrics` output](evidence/lab4/lab4-part1-1.3.txt)
+- [Local Docker build and run](evidence/lab4/lab4-part1-1.4.txt)
+- [Grafana login](screenshots/lab4/part2/2.2-graphana-connexion.png)
+- [Pre-installed dashboards](screenshots/lab4/part2/2.3-browse.png)
+- [Prometheus targets](screenshots/lab4/part2/2.4-target.png)
+- [Prometheus targets in DOWN state](screenshots/lab4/part2/2.4-target-down.png)
+- [Answers to Lab 4 questions](ANSWERS/4-ANSWERS.md)
