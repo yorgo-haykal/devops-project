@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feature/health-junior
+      - feature/health-lucie-lab4
   pull_request:
     branches: [main]
 
@@ -37,7 +38,7 @@ jobs:
   
   publish:
     needs: build-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/health-lucie-lab4')
     runs-on: ubuntu-latest
 
     permissions:
