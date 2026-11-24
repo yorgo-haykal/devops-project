@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: myapp-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: myapp
+      rules:
+        - alert: HighErrorRate
+          expr: |
+            sum(rate(http_requests_total{status=~"5.."}[2m]))
+            / sum(rate(http_requests_total[2m])) > 0.10
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Error rate above 10%"
+            runbook: "https://github.com/<org>/<repo>/blob/main/docs/runbook.md"
