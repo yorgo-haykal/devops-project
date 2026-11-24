@@ -10,6 +10,27 @@ Léanna SUISSA
 
 Lucie MOREAU 
 
+## Note on AI usage 
+How AI was used :
+
+AI was used as an assistant:
+    - Understanding concepts. It helped explain ideas such as Terraform drift detection, why state files stay out of Git, separate state per environment versus workspaces, and ephemeral preview environments.
+    - Writing and structuring documentation. It helped draft and tidy the lab answers (ANSWERS/*.md) in clear English,based on the results we actually obtained in the labs.
+    - Code and config support. It helped with the Dockerfiles, Kubernetes manifests and Terraform modules: suggesting structure, explaining errors and proposing fixes.
+    - Debugging. It was used to interpret terraform plan/apply output and container errors.
+
+Human responsibility.
+    - We ran every command ourselves and kept the evidence (evidence/, screenshots/).
+    - We checked AI suggestions against the real behaviour of the infrastructure. For example, we deleted the tf-web conntainer by hand and watched Terraform detect the drift.
+    - We stayed responsible for security choices. No secrets or state files were committed, and *.tfstate is in .gitignore.
+
+Limits and good practice.
+  - AI output can be wrong or out of date, so it was tested before being kept.
+  - Nothing sensitive (credentials, tokens, state) was shared with AI tools.
+  - AI was a productivity and learning aid. The design decisions and the final understanding are ours.
+
+Summary. AI sped up learning, writing and troubleshooting. The results were validated by hands-on execution.
+
 ## Endpoints
 
 | Method | Path      | Response |
@@ -365,7 +386,7 @@ The project includes deployment annotations and GitHub CI/CD information to supp
 - Environment overlays: `k8s/overlays/`
 - RBAC configuration: `k8s/rbac/`
 - Deployment and rollback evidence: `evidence/`
-- Answers to the eight lab questions: `ANSWERS.md`
+- Answers to the eight lab questions: [`ANSWERS/2-ANSWERS.md`](ANSWERS/2-ANSWERS.md)
 
 
 
@@ -429,5 +450,5 @@ All three jobs subsequently completed successfully.
 - [Kubernetes namespaces](infra/evidence/namespaces.txt)
 - [PR #43 deployment](infra/evidence/preview-pr43.txt)
 - [PR #43 Terraform state resources](infra/evidence/preview-state.txt)
-- [Answers to Lab 3 questions](infra/ANSWERS.md)
+- [Answers to Lab 3 questions](ANSWERS/3-ANSWERS.md)
 - [Terraform Pull Request #20](https://github.com/yorgo-haykal/devops-project/pull/20)

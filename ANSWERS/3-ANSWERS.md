@@ -1,4 +1,3 @@
-
 # DevOps Lab 3 — Terraform, Environments and Ephemeral Previews
 
 ## Part 1 — First Terraform Configuration
