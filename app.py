@@ -1,63 +1,61 @@
-
-from flask import Flask, Response, request
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 import json
-import logging
 import random
+import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+from flask import Flask, g, request
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 app = Flask(__name__)
 
-# Prometheus metrics
 http_requests = Counter(
     "http_requests_total",
-    "Total HTTP requests",
+    "Total number of HTTP requests",
     ["method", "route", "status"]
 )
 
 http_duration = Histogram(
     "http_request_duration_seconds",
-    "HTTP request duration in seconds",
-    ["method", "route"]
+    "HTTP request latency in seconds",
+    ["method", "route"],
+    buckets=[0.05, 0.1, 0.3, 0.5, 1, 2, float("inf")]
 )
 
-# Structured JSON logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("app")
+@app.after_request
+def record_metrics(response):
+    route = request.url_rule.rule if request.url_rule else "unmatched"
+
+    if route != "/metrics":
+        http_requests.labels(
+            method=request.method,
+            route=route,
+            status=str(response.status_code)
+        ).inc()
+
+        duration = time.perf_counter() - g.start_time
+
+        http_duration.labels(
+            method=request.method,
+            route=route
+        ).observe(duration)
+
+        log_entry = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "level": "error" if response.status_code >= 500 else "info",
+            "method": request.method,
+            "path": request.path,
+            "status": response.status_code,
+            "duration_seconds": round(duration, 6)
+        }
+
+        print(json.dumps(log_entry), file=sys.stdout, flush=True)
+
+    return response
 
 @app.before_request
 def start_timer():
-    request.start_time = datetime.now(timezone.utc)
-
-@app.after_request
-def log_request(response):
-    duration = (
-        datetime.now(timezone.utc) - request.start_time
-    ).total_seconds()
-
-    route = request.url_rule.rule if request.url_rule else request.path
-
-    http_requests.labels(
-        request.method, route, response.status_code
-    ).inc()
-
-    http_duration.labels(
-        request.method, route
-    ).observe(duration)
-
-    log_data = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "level": "error" if response.status_code >= 500 else "info",
-        "method": request.method,
-        "path": request.path,
-        "status": response.status_code,
-        "duration_seconds": duration
-    }
-
-    logger.info(json.dumps(log_data))
-
-    return response
+    g.start_time = time.perf_counter()
 
 @app.get("/health")
 def health():
@@ -67,20 +65,23 @@ def health():
 def slow():
     delay = random.uniform(0, 2)
     time.sleep(delay)
-    return f"Response after {delay:.2f} seconds", 200
+    return "Slow request completed", 200
+
 
 @app.get("/error")
 def error():
     if random.random() < 0.3:
         return "Internal Server Error", 500
+
     return "OK", 200
+
 
 @app.get("/metrics")
 def metrics():
-    return Response(
-        generate_latest(),
-        mimetype=CONTENT_TYPE_LATEST
-    )
+    return generate_latest(), 200, {
+        "Content-Type": CONTENT_TYPE_LATEST
+    }
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

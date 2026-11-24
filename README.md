@@ -4,10 +4,10 @@
 
 ### 1.3 Run locally, call the endpoints, then check curl localhost:3000/metrics.
 ```bash
-Invoke-WebRequest http://localhost:5000/health                              
-Invoke-WebRequest http://localhost:5000/slow                                                                                                                            
-Invoke-WebRequest http://localhost:5000/error                                                                                                                           
-                                                                                                                                                                        
+Invoke-WebRequest http://localhost:5000/health
+Invoke-WebRequest http://localhost:5000/slow
+Invoke-WebRequest http://localhost:5000/error
+
 StatusCode        : 200
 StatusDescription : OK
 [...]
@@ -43,6 +43,59 @@ http_request_duration_seconds_sum{method="GET",route="/slow"} 3.27635
 ### Question 1. Why is it a problem to use a user ID or a full URL containing IDs as a metric label?
 ### Question 2. Why log to stdout in JSON rather than to a file in plain text?
 
+
+## Part 2: Deploy the Monitoring Stack
+
+### 2.1 Retrieve the Grafana admin password from the Kubernetes secret monitoring-grafana (decode the base64 value).
+### 2.2 Open Grafana and browse the pre-installed Kubernetes dashboards.
+### 2.3 Open the Prometheus UI and check the Targets page.
+
+
+## Part 3: Scrape Your Application
+
+### 3.1 Update your Service to name the port http and apply the ServiceMonitor.
+### 3.2 Confirm that the target appears as UP in Prometheus.
+### 3.3 Generate traffic with a loop and query http_requests_total in the Prometheus UI.
+
+### Question 3. The target does not appear. List three things you would check.
+
+
+## Part 4: PromQL and Dashboard
+
+### 4.1 Write PromQL queries for each golden signal:
+• Traffic: requests per second
+• Errors: ratio of HTTP 5xx responses
+• Latency: 95th percentile duration
+• Saturation: CPU or memory usage of the pods
+### 4.2 Create a Grafana dashboard with one panel per signal.
+### 4.3 Export the dashboard as JSON and commit it to monitoring/dashboards/
+
+### Question 4. Why is the 95th percentile more informative than the average latency?
+
+
+## Part 5: Alerting
+
+### 5.1 Apply the rule and verify it in the Prometheus Alerts page.
+### 5.2 Increase the error rate (call /error heavily) until the alert goes to FIRING.
+### 5.3 Write a short runbook docs/runbook.md for this alert: symptoms, quick checks, mitigation steps.
+
+### Question 5. What is alert fatigue and how do the for: clause and severity labels help?
+
+
+## Part 6: Incident Simulation and Postmortem
+
+### 6.1 The saboteur deploys a bad image tag (for example, an increased error rate or a deliberate crash) in the dev namespace.
+### 6.2 The responder detects the problem through the dashboard and alert, identifies the faulty deployment and mitigates first with a rollback.
+### 6.3 The responder keeps a timeline of events with timestamps.
+### 6.4 Write a blameless postmortem in docs/postmortem.md using the template below.
+
+### Question 6. Why mitigate before finding the root cause?
+### Question 7. Why must a postmortem be blameless? Give an example of a blameless rewording of “Alex deployed a bad version”.
+### Question 8. Propose two concrete changes to the pipeline from Sessions 1 to 3 that would have prevented or limited this incident (for example, canary release or smoke tests).
+
+
+```bash
+```
 
 
 ```bash
