@@ -1,0 +1,35 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: myapp-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: myapp
+      rules:
+        - alert: HighErrorRate
+          expr: |
+            (
+              sum(rate(http_requests_total{
+                namespace="dev",
+                job="myapp",
+                status=~"5.."
+              }[2m]))
+              /
+              clamp_min(
+                sum(rate(http_requests_total{
+                  namespace="dev",
+                  job="myapp"
+                }[2m])),
+                0.000001
+              )
+            ) > 0.10
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Error rate above 10% for myapp"
+            description: "More than 10% of HTTP requests are failing."
+            runbook: "https://github.com/yorgo-haykal/devops-project/blob/main/docs/runbook.md"
