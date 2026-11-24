@@ -1,0 +1,96 @@
+Lab 4 - Part 1 - Question 1.3
+
+==================================================
+TERMINAL - Metrics endpoint (curl.exe localhost:5000/metrics)
+==================================================
+
+PS C:\Users\aanak> curl.exe localhost:5000/metrics
+# HELP python_gc_objects_collected_total Objects collected during gc
+# TYPE python_gc_objects_collected_total counter
+python_gc_objects_collected_total{generation="0"} 302.0
+python_gc_objects_collected_total{generation="1"} 99.0
+python_gc_objects_collected_total{generation="2"} 0.0
+# HELP python_gc_objects_uncollectable_total Uncollectable objects found during GC
+# TYPE python_gc_objects_uncollectable_total counter
+python_gc_objects_uncollectable_total{generation="0"} 0.0
+python_gc_objects_uncollectable_total{generation="1"} 0.0
+python_gc_objects_uncollectable_total{generation="2"} 0.0
+# HELP python_gc_collections_total Number of times this generation was collected
+# TYPE python_gc_collections_total counter
+python_gc_collections_total{generation="0"} 71.0
+python_gc_collections_total{generation="1"} 6.0
+python_gc_collections_total{generation="2"} 0.0
+# HELP python_info Python platform information
+# TYPE python_info gauge
+python_info{implementation="CPython",major="3",minor="12",patchlevel="10",version="3.12.10"} 1.0
+# HELP http_requests_total Total HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",route="/health",status="200"} 1.0
+http_requests_total{method="GET",route="/error",status="500"} 2.0
+http_requests_total{method="GET",route="/slow",status="200"} 4.0
+http_requests_total{method="GET",route="unknown",status="404"} 1.0
+http_requests_total{method="GET",route="/error",status="200"} 1.0
+http_requests_total{method="GET",route="/metrics",status="200"} 1.0
+# HELP http_requests_created Total HTTP requests
+# TYPE http_requests_created gauge
+http_requests_created{method="GET",route="/health",status="200"} 1.7955127502684014e+09
+http_requests_created{method="GET",route="/error",status="500"} 1.7955127562794123e+09
+http_requests_created{method="GET",route="/slow",status="200"} 1.7955127717513032e+09
+http_requests_created{method="GET",route="unknown",status="404"} 1.795512788476149e+09
+http_requests_created{method="GET",route="/error",status="200"} 1.7955128901914606e+09
+http_requests_created{method="GET",route="/metrics",status="200"} 1.7955129608525834e+09
+# HELP http_request_duration_seconds Request latency in seconds
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{le="0.05",method="GET",route="/health"} 1.0
+http_request_duration_seconds_bucket{le="0.1",method="GET",route="/health"} 1.0
+http_request_duration_seconds_bucket{le="0.3",method="GET",route="/health"} 1.0
+http_request_duration_seconds_bucket{le="0.5",method="GET",route="/health"} 1.0
+http_request_duration_seconds_bucket{le="1.0",method="GET",route="/health"} 1.0
+http_request_duration_seconds_bucket{le="2.0",method="GET",route="/health"} 1.0
+http_request_duration_seconds_bucket{le="+Inf",method="GET",route="/health"} 1.0
+http_request_duration_seconds_count{method="GET",route="/health"} 1.0
+http_request_duration_seconds_sum{method="GET",route="/health"} 0.00013339996803551912
+http_request_duration_seconds_bucket{le="0.05",method="GET",route="/error"} 3.0
+http_request_duration_seconds_bucket{le="0.1",method="GET",route="/error"} 3.0
+http_request_duration_seconds_bucket{le="0.3",method="GET",route="/error"} 3.0
+http_request_duration_seconds_bucket{le="0.5",method="GET",route="/error"} 3.0
+http_request_duration_seconds_bucket{le="1.0",method="GET",route="/error"} 3.0
+http_request_duration_seconds_bucket{le="2.0",method="GET",route="/error"} 3.0
+http_request_duration_seconds_bucket{le="+Inf",method="GET",route="/error"} 3.0
+http_request_duration_seconds_count{method="GET",route="/error"} 3.0
+http_request_duration_seconds_sum{method="GET",route="/error"} 0.00034529995173215866
+http_request_duration_seconds_bucket{le="0.05",method="GET",route="/slow"} 0.0
+http_request_duration_seconds_bucket{le="0.1",method="GET",route="/slow"} 0.0
+http_request_duration_seconds_bucket{le="0.3",method="GET",route="/slow"} 0.0
+http_request_duration_seconds_bucket{le="0.5",method="GET",route="/slow"} 0.0
+http_request_duration_seconds_bucket{le="1.0",method="GET",route="/slow"} 0.0
+http_request_duration_seconds_bucket{le="2.0",method="GET",route="/slow"} 4.0
+http_request_duration_seconds_bucket{le="+Inf",method="GET",route="/slow"} 4.0
+http_request_duration_seconds_count{method="GET",route="/slow"} 4.0
+http_request_duration_seconds_sum{method="GET",route="/slow"} 6.0177796999923885
+http_request_duration_seconds_bucket{le="0.05",method="GET",route="unknown"} 1.0
+http_request_duration_seconds_bucket{le="0.1",method="GET",route="unknown"} 1.0
+http_request_duration_seconds_bucket{le="0.3",method="GET",route="unknown"} 1.0
+http_request_duration_seconds_bucket{le="0.5",method="GET",route="unknown"} 1.0
+http_request_duration_seconds_bucket{le="1.0",method="GET",route="unknown"} 1.0
+http_request_duration_seconds_bucket{le="2.0",method="GET",route="unknown"} 1.0
+http_request_duration_seconds_bucket{le="+Inf",method="GET",route="unknown"} 1.0
+http_request_duration_seconds_count{method="GET",route="unknown"} 1.0
+http_request_duration_seconds_sum{method="GET",route="unknown"} 0.00036339997313916683
+http_request_duration_seconds_bucket{le="0.05",method="GET",route="/metrics"} 1.0
+http_request_duration_seconds_bucket{le="0.1",method="GET",route="/metrics"} 1.0
+http_request_duration_seconds_bucket{le="0.3",method="GET",route="/metrics"} 1.0
+http_request_duration_seconds_bucket{le="0.5",method="GET",route="/metrics"} 1.0
+http_request_duration_seconds_bucket{le="1.0",method="GET",route="/metrics"} 1.0
+http_request_duration_seconds_bucket{le="2.0",method="GET",route="/metrics"} 1.0
+http_request_duration_seconds_bucket{le="+Inf",method="GET",route="/metrics"} 1.0
+http_request_duration_seconds_count{method="GET",route="/metrics"} 1.0
+http_request_duration_seconds_sum{method="GET",route="/metrics"} 0.0010306999902240932
+# HELP http_request_duration_seconds_created Request latency in seconds
+# TYPE http_request_duration_seconds_created gauge
+http_request_duration_seconds_created{method="GET",route="/health"} 1.7955127502684014e+09
+http_request_duration_seconds_created{method="GET",route="/error"} 1.7955127562794123e+09
+http_request_duration_seconds_created{method="GET",route="/slow"} 1.7955127717513032e+09
+http_request_duration_seconds_created{method="GET",route="unknown"} 1.795512788476149e+09
+http_request_duration_seconds_created{method="GET",route="/metrics"} 1.7955129608525834e+09
+PS C:\Users\aanak>
