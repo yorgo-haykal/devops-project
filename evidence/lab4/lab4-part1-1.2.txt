@@ -1,0 +1,122 @@
+Lab 4 - Part 1 - Question 1.2
+
+==================================================
+TERMINAL 1 - Application server (python app.py)
+==================================================
+
+PS C:\Users\aanak\Desktop\S9\07_DEVOPS-CONTINUOUS-DEPLOYMENT\devops-project> python app.py
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.101.10.21:5000
+Press CTRL+C to quit
+{"timestamp": "2026-11-24T09:32:30.268401+00:00", "level": "info", "method": "GET", "path": "/health", "status": 200, "duration_ms": 0.13}
+127.0.0.1 - - [24/Nov/2026 06:32:30] "GET /health HTTP/1.1" 200 -
+{"timestamp": "2026-11-24T09:32:36.279412+00:00", "level": "error", "method": "GET", "path": "/error", "status": 500, "duration_ms": 0.14}
+127.0.0.1 - - [24/Nov/2026 06:32:36] "GET /error HTTP/1.1" 500 -
+{"timestamp": "2026-11-24T09:32:51.751303+00:00", "level": "info", "method": "GET", "path": "/slow", "status": 200, "duration_ms": 1380.15}
+127.0.0.1 - - [24/Nov/2026 06:32:51] "GET /slow HTTP/1.1" 200 -
+{"timestamp": "2026-11-24T09:32:54.581976+00:00", "level": "info", "method": "GET", "path": "/slow", "status": 200, "duration_ms": 1646.16}
+127.0.0.1 - - [24/Nov/2026 06:32:54] "GET /slow HTTP/1.1" 200 -
+{"timestamp": "2026-11-24T09:32:57.478700+00:00", "level": "info", "method": "GET", "path": "/slow", "status": 200, "duration_ms": 1972.96}
+127.0.0.1 - - [24/Nov/2026 06:32:57] "GET /slow HTTP/1.1" 200 -
+{"timestamp": "2026-11-24T09:32:59.222064+00:00", "level": "info", "method": "GET", "path": "/slow", "status": 200, "duration_ms": 1018.5}
+127.0.0.1 - - [24/Nov/2026 06:32:59] "GET /slow HTTP/1.1" 200 -
+{"timestamp": "2026-11-24T09:33:08.476148+00:00", "level": "info", "method": "GET", "path": "/randomurl", "status": 404, "duration_ms": 0.36}
+127.0.0.1 - - [24/Nov/2026 06:33:08] "GET /randomurl HTTP/1.1" 404 -
+127.0.0.1 - - [24/Nov/2026 06:34:47] "GET /error HTTP/1.1" 500 -
+{"timestamp": "2026-11-24T09:34:50.191460+00:00", "level": "info", "method": "GET", "path": "/error", "status": 200, "duration_ms": 0.09}
+127.0.0.1 - - [24/Nov/2026 06:34:50] "GET /error HTTP/1.1" 200 -
+
+
+==================================================
+TERMINAL 2 - Client requests (curl.exe)
+==================================================
+
+PS C:\Users\aanak> curl.exe -i localhost:5000/health
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.12.10
+Date: Tue, 24 Nov 2026 09:32:30 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 2
+X-Response-Time: 0.000s
+Connection: close
+
+OK
+PS C:\Users\aanak> curl.exe -i localhost:5000/error
+HTTP/1.1 500 INTERNAL SERVER ERROR
+Server: Werkzeug/3.1.8 Python/3.12.10
+Date: Tue, 24 Nov 2026 09:32:36 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 14
+X-Response-Time: 0.000s
+Connection: close
+
+internal error
+PS C:\Users\aanak> curl.exe -i localhost:5000/slow
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.12.10
+Date: Tue, 24 Nov 2026 09:32:51 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 7
+X-Response-Time: 1.380s
+Connection: close
+
+slow OK
+PS C:\Users\aanak> curl.exe -i localhost:5000/slow
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.12.10
+Date: Tue, 24 Nov 2026 09:32:54 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 7
+X-Response-Time: 1.646s
+Connection: close
+
+slow OK
+PS C:\Users\aanak> curl.exe -i localhost:5000/slow
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.12.10
+Date: Tue, 24 Nov 2026 09:32:57 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 7
+X-Response-Time: 1.973s
+Connection: close
+
+slow OK
+PS C:\Users\aanak> curl.exe -i localhost:5000/slow
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.12.10
+Date: Tue, 24 Nov 2026 09:32:59 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 7
+X-Response-Time: 1.018s
+Connection: close
+
+slow OK
+PS C:\Users\aanak> curl.exe -i localhost:5000/randomurl
+HTTP/1.1 404 NOT FOUND
+Server: Werkzeug/3.1.8 Python/3.12.10
+Date: Tue, 24 Nov 2026 09:33:08 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 207
+X-Response-Time: 0.000s
+Connection: close
+
+<!doctype html>
+<html lang=en>
+<title>404 Not Found</title>
+<h1>Not Found</h1>
+<p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
+PS C:\Users\aanak> curl.exe -i localhost:5000/error
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.12.10
+Date: Tue, 24 Nov 2026 09:34:50 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 8
+X-Response-Time: 0.000s
+Connection: close
+
+error OK
+PS C:\Users\aanak>
