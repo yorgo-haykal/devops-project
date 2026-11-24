@@ -1,0 +1,50 @@
+name: terraform
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform -chdir=infra/envs/dev init -backend=false
+
+      - name: Terraform Format
+        run: terraform -chdir=infra/envs/dev fmt -check
+
+      - name: Terraform Validate
+        run: terraform -chdir=infra/envs/dev validate
+
+      - name: Terraform Plan
+        run: |
+          terraform -chdir=infra/envs/dev plan -input=false \
+            -var="env_name=dev" \
+            -var="external_port=8082" \
+            -var="image=nginx:1.27" \
+            -out=tfplan
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: infra/envs/dev/tfplan
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy config scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: infra
+          severity: HIGH,CRITICAL
+          exit-code: "1"
